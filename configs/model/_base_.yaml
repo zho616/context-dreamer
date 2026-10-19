@@ -179,3 +179,11 @@ critic:
   outscale: 0.0
   symlog_inputs: False
   name: 'value'
+
+# Opt-in physical history branch; baseline architecture stays unchanged when false.
+context:
+  enabled: false
+  injection: recurrent_concat # cRSSM/DALI recurrent input route; legacy: adarms_deter, prior_posterior
+  actor_critic: false # Also concatenate detached context to actor, critic and slow critic.
+  rollout: dynamic
+  aux_weight: 1.0

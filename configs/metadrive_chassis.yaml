@@ -1,0 +1,8 @@
+defaults:
+  - metadrive
+  - _self_
+
+logdir: logdir/metadrive_chassis/${now:%Y-%m-%d}/${now:%H-%M-%S}
+env:
+  chassis:
+    enabled: true

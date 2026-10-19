@@ -35,4 +35,5 @@ trainer:
   video_pred_log: False
   params_hist_log: False
   update_log_every: 5e3
+  save_every: 20000
   action_repeat: ${env.action_repeat}

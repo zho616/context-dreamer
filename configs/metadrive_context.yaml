@@ -1,0 +1,8 @@
+defaults:
+  - metadrive
+  - _self_
+
+logdir: logdir/metadrive_context/${now:%Y-%m-%d}/${now:%H-%M-%S}
+model:
+  context:
+    enabled: true

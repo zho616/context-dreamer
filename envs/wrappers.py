@@ -120,6 +120,13 @@ class RewardObs(gym.Wrapper):
 
 
 class Dtype(gym.Wrapper):
+    def begin_evaluation(self):
+        try:
+            callback = self.env.get_wrapper_attr("begin_evaluation")
+        except AttributeError:
+            return
+        callback()
+
     def step(self, action):
         obs, rew, done, info = self.env.step(action)
         return tools.convert(obs), np.float32(rew), done, info

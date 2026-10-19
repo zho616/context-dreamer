@@ -12,9 +12,15 @@ def make_envs(config):
     def env_constructor(idx):
         return lambda: make_env(config, idx)
 
+    def eval_constructor(idx):
+        return lambda: make_env(config, idx, evaluation=True)
+
+    eval_env_num = min(int(getattr(config, "eval_env_num", config.eval_episode_num)), int(config.eval_episode_num))
+    if config.eval_episode_num > 0 and eval_env_num < 1:
+        raise ValueError("eval_env_num must be positive when evaluation is enabled")
     train_envs = parallel.ParallelEnv(env_constructor, config.env_num, config.device)
     eval_envs = (
-        parallel.ParallelEnv(env_constructor, config.eval_episode_num, config.device)
+        parallel.ParallelEnv(eval_constructor, eval_env_num, config.device)
         if config.eval_episode_num > 0
         else None
     )
@@ -52,7 +58,7 @@ def _make_isaaclab_envs(config):
     return train_envs, eval_envs, obs_space, act_space
 
 
-def make_env(config, id):
+def make_env(config, id, evaluation=False):
     suite, task = config.task.split("_", 1)
     if suite == "dmc":
         import envs.dmc as dmc
@@ -90,6 +96,10 @@ def make_env(config, id):
 
         env = crafter.Crafter(task, config.size, seed=config.seed + id)
         env = wrappers.OneHotAction(env)
+    elif suite == "metadrive":
+        from envs.metadrive import MetaDrive
+
+        env = MetaDrive(config, id, evaluation=evaluation)
     elif suite == "metaworld":
         import envs.metaworld as metaworld
 
@@ -102,5 +112,7 @@ def make_env(config, id):
         )
     else:
         raise NotImplementedError(suite)
-    env = wrappers.TimeLimit(env, config.time_limit // config.action_repeat)
+    # MetaDrive applies its horizon at each native step, including partial repeats.
+    if suite != "metadrive":
+        env = wrappers.TimeLimit(env, config.time_limit // config.action_repeat)
     return wrappers.Dtype(env)

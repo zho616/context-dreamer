@@ -31,6 +31,11 @@ class ParallelEnv:
     def env_num(self):
         return len(self.envs)
 
+    def begin_evaluation(self):
+        promises = [env.begin_evaluation() for env in self.envs]
+        for promise in promises:
+            promise()
+
     def lift_dim(self, td):
         for key in td.keys():
             if td[key].ndim == 1:

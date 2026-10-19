@@ -1,0 +1,12 @@
+defaults:
+  - configs
+  - override env: metadrive_lidar
+  - _self_
+
+logdir: logdir/metadrive_roundabout/${now:%Y-%m-%d}/${now:%H-%M-%S}
+# Latents are also stored in replay. Keep replay off the 16 GB GPU.
+buffer:
+  max_size: 500000
+  storage_device: cpu
+trainer:
+  save_best: true

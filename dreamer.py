@@ -30,14 +30,42 @@ class Dreamer(nn.Module):
         self.act_dim = act_space.n if hasattr(act_space, "n") else sum(act_space.shape)
         self.rep_loss = str(config.rep_loss)
 
+        context_config = getattr(config, "context", None)
+        self.context_enabled = bool(context_config and context_config.enabled)
+        self.context_actor_critic = self.context_enabled and bool(getattr(context_config, "actor_critic", False))
+        rssm_class = rssm.RSSM
+        rssm_kwargs = {}
+        if self.context_enabled:
+            from context_rssm import ContextRSSM
+            if self.rep_loss not in ("r2dreamer", "dreamer") or self.act_dim != 2 or hasattr(act_space, "n") or hasattr(act_space, "multi_discrete"):
+                raise ValueError("Context supports continuous two-action R2Dreamer/DreamerV3 only")
+            if context_config.injection not in ("recurrent_concat", "prior_posterior", "adarms_deter"):
+                raise ValueError("Unknown context injection")
+            rssm_kwargs["injection"] = str(context_config.injection)
+            self.context_rollout = str(context_config.rollout)
+            if self.context_rollout not in ("dynamic", "fixed", "zero", "shuffled"):
+                raise ValueError("Unknown context rollout mode")
+            required = {"ctx_ego_state", "ctx_prev_action", "ctx_history", "ctx_mask", "ctx_collision"}
+            if not required.issubset(obs_space.spaces):
+                raise ValueError("Context requires MetaDrive physical history observations")
+            self.context_state_dim = int(obs_space.spaces["ctx_ego_state"].shape[-1])
+            if self.context_state_dim not in (2, 4):
+                raise ValueError("Context expects legacy state2 or speed/wheel-angle state4")
+            expected = {"ctx_ego_state": (self.context_state_dim,), "ctx_prev_action": (2,),
+                        "ctx_history": (5, self.context_state_dim + 2), "ctx_mask": (5,)}
+            if any(tuple(obs_space.spaces[k].shape) != shape for k, shape in expected.items()):
+                raise ValueError("Context state/history shapes disagree; use matching replay and checkpoint layouts")
+            rssm_class = ContextRSSM
+
         # World model components
         shapes = {k: tuple(v.shape) for k, v in obs_space.spaces.items()}
         self.encoder = networks.MultiEncoder(config.encoder, shapes)
         self.embed_size = self.encoder.out_dim
-        self.rssm = rssm.RSSM(
+        self.rssm = rssm_class(
             config.rssm,
             self.embed_size,
             self.act_dim,
+            **rssm_kwargs,
         )
         self.reward = networks.MLPHead(config.reward, self.rssm.feat_size)
         self.cont = networks.MLPHead(config.cont, self.rssm.feat_size)
@@ -54,8 +82,9 @@ class Dreamer(nn.Module):
             config.actor.dist = config.actor.dist.cont
 
         # Actor-critic components
-        self.actor = networks.MLPHead(config.actor, self.rssm.feat_size)
-        self.value = networks.MLPHead(config.critic, self.rssm.feat_size)
+        behavior_size = self.rssm.feat_size + (8 if self.context_actor_critic else 0)
+        self.actor = networks.MLPHead(config.actor, behavior_size)
+        self.value = networks.MLPHead(config.critic, behavior_size)
         self.slow_target_update = int(config.slow_target_update)
         self.slow_target_fraction = float(config.slow_target_fraction)
         self._slow_value = copy.deepcopy(self.value)
@@ -122,6 +151,15 @@ class Dreamer(nn.Module):
                 "ema_encoder": self._ema_encoder,
                 "ema_obs_proj": self._ema_obs_proj,
             })
+        if self.context_enabled:
+            from context import HistoryEncoder, ResidualDynamics
+            self.context_encoder = HistoryEncoder(self.context_state_dim)
+            self.context_dynamics = ResidualDynamics(self.context_state_dim)
+            aux_weight = float(context_config.aux_weight)
+            if not math.isfinite(aux_weight) or aux_weight < 0:
+                raise ValueError("context.aux_weight must be finite and nonnegative")
+            self._loss_scales["context_aux"] = aux_weight
+            modules.update(context_encoder=self.context_encoder, context_dynamics=self.context_dynamics)
         # count number of parameters in each module
         for key, module in modules.items():
             if isinstance(module, nn.Parameter):
@@ -256,10 +294,15 @@ class Dreamer(nn.Module):
             state["prev_action"],
         )
         # (B, S, K), (B, D)
-        stoch, deter, _ = self._frozen_rssm.obs_step(prev_stoch, prev_deter, prev_action, embed, obs["is_first"])
+        extra = ()
+        if self.context_enabled:
+            context = self.context_encoder(p_obs["ctx_history"], p_obs["ctx_mask"])
+            context = torch.where(obs["is_first"].bool().reshape(-1, 1), 0., context)
+            extra = (context,)
+        stoch, deter, _ = self._frozen_rssm.obs_step(prev_stoch, prev_deter, prev_action, embed, obs["is_first"], *extra)
         # (B, F)
         feat = self._frozen_rssm.get_feat(stoch, deter)
-        action_dist = self._frozen_actor(feat)
+        action_dist = self._frozen_actor(self._behavior_feat(feat, extra[0] if extra else None))
         # (B, A)
         action = action_dist.mode if eval else action_dist.rsample()
         return action, TensorDict(
@@ -280,6 +323,8 @@ class Dreamer(nn.Module):
         return self._video_pred(p_data, initial)
 
     def _video_pred(self, data, initial):
+        if self.context_enabled:
+            raise ValueError("Context video prediction is unsupported; use vector MetaDrive evaluation")
         """Video prediction utility."""
         if self.rep_loss != "dreamer":
             raise NotImplementedError("video_pred requires decoder and is only supported when rep_loss == 'dreamer'.")
@@ -366,9 +411,18 @@ class Dreamer(nn.Module):
         # (B, T, E)
         embed = self.encoder(data)
         # (B, T, S, K), (B, T, D), (B, T, S, K)
-        post_stoch, post_deter, post_logit = self.rssm.observe(embed, data["action"], initial, data["is_first"])
+        extra = ()
+        if self.context_enabled:
+            from context import auxiliary_loss
+            context = self.context_encoder(data["ctx_history"], data["ctx_mask"])
+            context = torch.where(data["is_first"].bool().reshape(B, T, 1), 0., context)
+            losses["context_aux"], metrics["context/valid_targets"] = auxiliary_loss(
+                self.context_dynamics, data, context)
+            metrics["context/rms"] = context.detach().square().mean().sqrt()
+            extra = (context.detach(),)
+        post_stoch, post_deter, post_logit = self.rssm.observe(embed, data["action"], initial, data["is_first"], *extra)
         # (B, T, S, K)
-        _, prior_logit = self.rssm.prior(post_deter)
+        _, prior_logit = self.rssm.prior(post_deter, *extra)
         dyn_loss, rep_loss = self.rssm.kl_loss(post_logit, prior_logit, self.kl_free)
         losses["dyn"] = torch.mean(dyn_loss)
         losses["rep"] = torch.mean(rep_loss)
@@ -441,16 +495,20 @@ class Dreamer(nn.Module):
             post_deter.reshape(-1, *post_deter.shape[2:]).detach(),
         )
         # (B, T, ...) -> (B*T, ...)
-        imag_feat, imag_action = self._imagine(start, self.imag_horizon + 1)
+        if self.context_enabled:
+            imag_feat, imag_action, imag_context = self._imagine_context(start, self.imag_horizon + 1, data, context.detach())
+        else:
+            imag_feat, imag_action = self._imagine(start, self.imag_horizon + 1)
         imag_feat, imag_action = imag_feat.detach(), imag_action.detach()
+        imag_behavior_feat = self._behavior_feat(imag_feat, imag_context if self.context_enabled else None)
 
         # (B*T, T_imag, 1)
         imag_reward = self._frozen_reward(imag_feat).mode()
         # (B*T, T_imag, 1)  probability of continuation
         imag_cont = self._frozen_cont(imag_feat).mean
         # (B*T, T_imag, 1)
-        imag_value = self._frozen_value(imag_feat).mode()
-        imag_slow_value = self._frozen_slow_value(imag_feat).mode()
+        imag_value = self._frozen_value(imag_behavior_feat).mode()
+        imag_slow_value = self._frozen_slow_value(imag_behavior_feat).mode()
         disc = 1 - 1 / self.horizon
         # (B*T, T_imag, 1)
         weight = torch.cumprod(imag_cont * disc, dim=1)
@@ -463,13 +521,13 @@ class Dreamer(nn.Module):
         # (B*T, T_imag-1, 1)
         adv = (ret - imag_value[:, :-1]) / ret_scale
 
-        policy = self.actor(imag_feat)
+        policy = self.actor(imag_behavior_feat)
         # (B*T, T_imag-1, 1)
         logpi = policy.log_prob(imag_action)[:, :-1].unsqueeze(-1)
         entropy = policy.entropy()[:, :-1].unsqueeze(-1)
         losses["policy"] = torch.mean(weight[:, :-1].detach() * -(logpi * adv.detach() + self.act_entropy * entropy))
 
-        imag_value_dist = self.value(imag_feat)
+        imag_value_dist = self.value(imag_behavior_feat)
         # (B*T, T_imag, 1)
         tar_padded = torch.cat([ret, 0 * ret[:, -1:]], 1)
         losses["value"] = torch.mean(
@@ -501,16 +559,17 @@ class Dreamer(nn.Module):
             to_f32(data["reward"]),
         )
         feat = self.rssm.get_feat(post_stoch, post_deter)
+        behavior_feat = self._behavior_feat(feat, context if self.context_enabled else None)
         boot = ret[:, 0].reshape(B, T, 1)
-        value = self._frozen_value(feat).mode()
-        slow_value = self._frozen_slow_value(feat).mode()
+        value = self._frozen_value(behavior_feat).mode()
+        slow_value = self._frozen_slow_value(behavior_feat).mode()
         disc = 1 - 1 / self.horizon
         weight = 1.0 - last
         ret = self._lambda_return(last, term, reward, value, boot, disc, self.lamb)
         ret_padded = torch.cat([ret, 0 * ret[:, -1:]], 1)
 
         # Keep this attached to the world model so gradients can flow through
-        value_dist = self.value(feat)
+        value_dist = self.value(behavior_feat)
         losses["repval"] = torch.mean(
             weight[:, :-1]
             * (-value_dist.log_prob(ret_padded.detach()) - value_dist.log_prob(slow_value.detach()))[:, :-1].unsqueeze(
@@ -528,6 +587,14 @@ class Dreamer(nn.Module):
         metrics.update({f"loss/{name}": loss for name, loss in losses.items()})
         metrics.update({"opt/loss": total_loss})
         return (post_stoch, post_deter), metrics
+
+    def _behavior_feat(self, feat, context=None):
+        """Condition decisions on aligned context without training E through RL."""
+        if not self.context_actor_critic:
+            return feat
+        if context is None or context.shape[:-1] != feat.shape[:-1]:
+            raise ValueError("Actor/critic requires time-aligned context")
+        return torch.cat((feat, context.detach().to(feat.dtype)), -1)
 
     @torch.no_grad()
     def _imagine(self, start, imag_horizon):
@@ -549,6 +616,40 @@ class Dreamer(nn.Module):
         # Stack along sequence dim T_imag.
         # (B, T_imag, F), (B, T_imag, A)
         return torch.stack(feats, dim=1), torch.stack(actions, dim=1)
+
+    @torch.no_grad()
+    def _imagine_context(self, start, horizon, data, context):
+        from context import refresh_context
+        state = data["ctx_ego_state"].reshape(-1, self.context_state_dim)
+        history = data["ctx_history"].reshape(-1, 5, self.context_state_dim + 2)
+        mask = data["ctx_mask"].reshape(-1, 5).bool()
+        context = context.reshape(-1, 8)
+        fixed = context
+        alive = ~(data["is_last"] | data["is_terminal"]).bool().reshape(-1)
+        stoch, deter = start
+        feats, actions, contexts = [], [], []
+        behavior_context = context
+        for _ in range(horizon):
+            feat = self._frozen_rssm.get_feat(stoch, deter)
+            action = self._frozen_actor(self._behavior_feat(feat, behavior_context)).rsample()
+            feats.append(feat)
+            actions.append(action)
+            contexts.append(behavior_context)
+            state, context, history, mask = refresh_context(
+                self.context_encoder, self.context_dynamics, state, action, context, history, mask, alive)
+            injected = context
+            if self.context_rollout == "fixed":
+                injected = torch.where(alive[:, None], fixed, 0.)
+            elif self.context_rollout == "zero":
+                injected = torch.zeros_like(context)
+            elif self.context_rollout == "shuffled":
+                injected = context[torch.randperm(context.shape[0], device=context.device)]
+                injected = torch.where(alive[:, None], injected, 0.)
+            stoch, deter = self._frozen_rssm.img_step(stoch, deter, action, injected)
+            behavior_context = injected
+            next_feat = self._frozen_rssm.get_feat(stoch, deter)
+            alive = alive & (self._frozen_cont(next_feat).mean.reshape(-1) > 0.5)
+        return torch.stack(feats, 1), torch.stack(actions, 1), torch.stack(contexts, 1)
 
     @torch.no_grad()
     def _lambda_return(self, last, term, reward, value, boot, disc, lamb):
