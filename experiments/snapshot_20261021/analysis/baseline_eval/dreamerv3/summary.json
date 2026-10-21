@@ -1,0 +1,82 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/dreamerv3/best.pt",
+  "checkpoint_sha256": "9c49ea7f6024fbbd69ef484d30162e013430888c95c7a4bdc5f031b918cf98cf",
+  "checkpoint_step": 500003,
+  "source_root": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/source",
+  "episodes_requested": 100,
+  "seed_start": 10020,
+  "seed_end": 10119,
+  "inference_seed_offset": 12345,
+  "context_enabled": false,
+  "evaluation": "new maps; training chassis/scale distribution; frozen weights",
+  "policy": "actor mode; stochastic RSSM posterior with fixed per-episode RNG seed",
+  "status": "completed",
+  "completed_episodes": 100,
+  "elapsed_seconds": 103.42642484401586,
+  "summary": {
+    "success": 0.66,
+    "crash": 0.07,
+    "out_of_road": 0.27,
+    "timeout": 0.0,
+    "reward": 118.93874363073714,
+    "route_completion": 0.7816404424626665,
+    "steps": 243.94,
+    "mean_speed_km_h": 16.01851409706795,
+    "episodes": 100,
+    "success_count": 66,
+    "success_wilson95": [
+      0.5627772885472462,
+      0.7453847920265184
+    ]
+  },
+  "per_model": {
+    "default": {
+      "success": 0.7,
+      "crash": 0.075,
+      "out_of_road": 0.225,
+      "timeout": 0.0,
+      "reward": 128.43992571085965,
+      "route_completion": 0.8161320895410556,
+      "steps": 248.025,
+      "mean_speed_km_h": 16.651059434648825,
+      "episodes": 40,
+      "success_count": 28,
+      "success_wilson95": [
+        0.5456998118185507,
+        0.8192515477025347
+      ]
+    },
+    "l": {
+      "success": 0.7619047619047619,
+      "crash": 0.14285714285714285,
+      "out_of_road": 0.09523809523809523,
+      "timeout": 0.0,
+      "reward": 123.6339869317537,
+      "route_completion": 0.8388714167979678,
+      "steps": 264.8095238095238,
+      "mean_speed_km_h": 15.373569236720636,
+      "episodes": 21,
+      "success_count": 16,
+      "success_wilson95": [
+        0.5490882631704924,
+        0.8937198697736354
+      ]
+    },
+    "m": {
+      "success": 0.5641025641025641,
+      "crash": 0.02564102564102564,
+      "out_of_road": 0.41025641025641024,
+      "timeout": 0.0,
+      "reward": 106.66573356596156,
+      "route_completion": 0.7154477156888995,
+      "steps": 228.51282051282053,
+      "mean_speed_km_h": 15.717027649992524,
+      "episodes": 39,
+      "success_count": 22,
+      "success_wilson95": [
+        0.40975691648669477,
+        0.7069524612431037
+      ]
+    }
+  }
+}

@@ -361,3 +361,58 @@ AdaRMS独立测试补充：
 主图 `mass_friction_context_pca.png/pdf/svg`，独立mass_context_pca、friction_context_pca，另 `operating_condition_colors` 在完全相同PCA坐标上分别按速度、轮角着色。CSV/NPZ/metadata/QA/REPORT齐全；240固定窗原图保留。`scripts/plot_mass_friction_context_pca.py`新增--speeds/--angles，默认仍10m/s/15°。
 
 结果：不同比例在混合工况PCA中大量重叠，速度、轮角着色结构更清晰。8D共同标准化latent中，单因素组均值方差关联：质量扫描scale0.33%、speed22.68%、angle59.60%；摩擦扫描scale2.84%、speed18.95%、angle57.01%。这是平衡设计中的描述性主效应，不是参数信息占比/识别准确率；参数与工况交互不计入单因素主效应。PCA重叠也不能证明没有参数信息，只说明全局最大方差方向主要受工况影响。两个扫描各自PCA，跨图坐标不可当同一物理量。
+
+## 22. 当前1M模型的五车型PCA（2026-10-20）
+
+用户问是否有车型相关PCA。此前500K有，本次补画当前1M state2 best940005，输出 `logdir/retrained_vehicle_context_pca_20261020`。主图 `retrained_context_vehicle_pca.png/pdf/svg`：左1680个缓存物理窗口，混合初速5/10、七轮角-30/-15/-5/0/5/15/30、每车型336点；右固定初速10m/s、实际轮角15°，每车型24点，共120。仅复用原始物理历史，用1M E重新strict编码，未复用旧模型context值。20profile拟合标准化/PCA，4留出profile投影；按车型着色，非监督训练或零样本分类实验。
+
+主图混合PC1/2=85.15/7.13%，固定98.38/1.30%。固定条件下DEFAULT/S/XL分离较好，M/L仍有重叠；混合条件同车型分散，不同车型多处重叠。辅图 `retrained_context_pca_factors` 使用同一混合PCA坐标分别按车型、末速、轮角着色。CSV、NPZ、模型hash、metadata/QA/readme、脚本snapshot齐全。脚本`scripts/plot_retrained_vehicle_context_pca.py`。
+
+与此前结论一致：存在车型相关响应信息，但工况耦合明显；固定条件聚类不等于跨工况参数辨识。不同车型为固定native参数，最大转角不同导致相同实际轮角需不同归一化动作，可能暴露转向增益；初速固定后速度自然分化。不能从分簇直接宣称世界模型或驾驶受益。
+
+## 23. 固定车型工况：随机初始化context与1M best对照（2026-10-20）
+
+用户要求第二种固定工况做初始随机context的相关度对比。已完成 `logdir/fixed_vehicle_random_vs_trained_20261020`，主图fixed_random_vs_trained.png/pdf/svg（2×2：随机PCA、训练PCA、8D车型η²、分组六折线性探针）。同120条物理历史，五车型各24profile，初速10m/s/轮角15°；940005 best strict加载，与上一张1M PCA输出核对1e-6通过。随机对照20个预先指定seed20261015..20261034，PCA展示第一个，不是实际训练step0。
+
+完整8D按相同20个profile标准化后，车型分组η²随机70.55%±8.23pp（SD，范围59.68..86.38），训练99.04%，提高28.49pp。但固定alpha1的ridge分类探针（6折按profile分组，5类皆监督，非零样本）随机95.63%±4.08pp，训练91.67%，下降3.96pp。不能只报η²而称辨识全面改善；随机历史本来就含车型信息，训练后M/L仍接近。η²为组间均值差异/总体变异，不等于参数信息占比或分类准确率。训练目标为响应预测，并非车型分类；探针下降也不等于物理预测变差。
+
+脚本`scripts/compare_fixed_vehicle_random_context.py`，结果/混淆矩阵results.json，说明REPORT.md，QA及source CSV/NPZ/20种子指标/随机代表权重/脚本snapshot均已保存。随机误差条为20初始化均值±SD，训练模型只有一个点，勿误写多训练seed稳定性。
+
+## 24. M/L参数及随机/best编码器PCA澄清（2026-10-20）
+
+用户询问M/L是否参数接近，并强调比较随机context与best编码器的context。已核对：M/L nominal质量1200/1300kg，最大转角45/40°，wheel_friction .75/.8，驱动力参数（每轮、中点固定）750/550，制动力105/90，轴距2.488/2.748361m；部分接近，但驱动力有明显差异，不能视为同一动力学。
+
+当前固定10m/s/15°探测历史中，M/L平均纵向加速度-0.4704/-0.5805m/s²，右正横摆角速度-0.45746/-0.47041rad/s，末速9.8404/9.7895m/s。这组特定工况的响应确实较近，但不外推为所有工况一样。
+
+原23节a/b就是同一H分别经随机权重E与best E编码后再PCA、车型只用于着色，并非原始输入/随机噪声。为清晰单独导出`logdir/fixed_vehicle_random_vs_trained_20261020/encoder_pair_only.png/pdf/svg`，沿用已经校验的相同120个context输出及投影，无重新拟合或重训。渲染脚本`scripts/render_fixed_vehicle_encoder_pair.py`，响应均值存M_L_probe_summary.json。
+
+## 25. 用户澄清：随机化8维向量，而非随机编码器（2026-10-20）
+
+用户明确要求“随机化8维context，不是编码器权重”。已承认前述对照解释不符并新增独立噪声对照，不覆盖旧随机编码器诊断。
+
+输出 `logdir/random_vector_vs_best_context_20261020`，随机分支每个窗口独立c~N(0,I8)，不经过编码器，与历史/车型无关；best仍strict加载940005步E输出同120个固定10m/s/15°历史。20个预指定随机向量种子20261015..20261034，展示第一个；η²随机3.27%±1.00pp（SD）vs best99.04%；分组ridge分类随机19.38%±3.75pp vs best91.67%（5类机会20%）。该无信息参照说明best非独立噪声，不能单独隔离训练新增信息。
+
+四面板fixed_random_vs_trained和独立两面板random_vector_vs_best_pca均PNG/PDF/SVG；源数据、随机向量NPZ、CSV、results/QA/REPORT、五车型标称参数CSV/JSON齐全。脚本compare_random_vector_best_context.py、render_random_vector_best_pair.py。
+五车型参数：DEFAULT/M/L/S/XL质量1100/1200/1300/800/1600；maxsteer40/45/40/50/35；friction.9/.75/.8/.9/.7；每轮engine800/750/550/450/600，brake130/105/90/57.5/75（实验固定中点）；轴距2.46894/2.488/2.748361/2.495/2.801m。车辆尺寸与轮胎半径亦导出。
+
+## 26. 五因素单独PCA：随机8D向量 vs best（2026-10-20）
+
+用户要求分别对初速度、车轮转角、摩擦、质量、轴距做PCA对比。已完成 `logdir/five_factors_context_pca_20261020`，总览five_factors_random_vs_best_pca及各因素独立两图speed/wheel_angle/friction/mass/wheelbase_random_vs_best_pca，均PNG/PDF/SVG；CSV/NPZ/metadata/QA/REPORT/snapshot完整，脚本compare_five_factors_context_pca.py。
+
+冻结同一940005 state2 E，M车型，OAT其余固定：初速10m/s、实际前轮15°、mass1200、friction.75、wheelbase2.488。各因素5档×24profile=120窗，总600窗；宽平直无交通、静置30、K5/0.5秒，速度仅初始化不钳制。初速档5/7.5/10/12.5/15；轮角-30/-15/0/15/30；摩擦.6/.675/.75/.825/.9；质量960/1080/1200/1320/1440；轴距1.9904/2.2392/2.488/2.7368/2.9856m。
+
+轴距单独修改真实Bullet车轮chassis connection纵向坐标，前1.285、后-1.203同比缩放；轴距前后读回检查。其他x/z、轮距、轮径、质量、车身尺寸、刚体惯量不变。不是借用车型差异，也不是整车缩放；仅此几何干预。
+
+独立噪声20种子（每窗iid N(0,I8)，非随机编码器），各因素/阶段分别用20profile拟合PCA，4留出显示。完整8D η²随机均约3.0–3.3%；best初速96.79%、轮角96.98%、摩擦98.06%、质量75.33%、轴距23.15%。该OAT设计显示前四因子响应较明显、轴距在当前10m/s/15°/0.5秒条件中更重叠；不代表全局重要性排序或解耦。轮角还直接改变输入的转向动作。不能与混合工况主效应η²混为同一条件，PCA坐标也不跨面板通用。
+
+## 27. R2Dreamer 条件注入统一 TensorBoard（2026-10-20）
+
+用户要求汇总全部既有注入训练，已启动 http://192.168.118.78:6014/ ，核验HTTP200、9个run均具有四项主要eval指标。清单与启动命令：`logdir/r2_context_all_tensorboard_20261020/launch.json`；说明`README.md`。视图只对各原目录顶层event文件建立软链接，原日志不变，不混入smoke。01–07为500K基线/state2循环/state4循环/AdaRMS/未完成ActorCritic拼接分支以及1M基线/state2循环；98保留ActorCritic原302629步废弃分支作归档，99保留535步失败启动作归档。ActorCritic有效恢复视图止301470，不是完整DALI Deep。无完整DALI Deep/Shallow、固定context独立训练曲线。6010/6011及其他任务6012/6013保持运行。
+
+## 28. 已有响应与工况关联复算（2026-10-20）
+
+用户澄清要分析纵向加速度和横摆角速度（不是角加速度）。输出`logdir/response_condition_association_20261020/`，复用五因素OAT和质量/摩擦组合历史物理数据，不新增仿真。M名义参数、24配对油门profile、每窗口0.1–0.5秒响应均值。单因素速度扫5–15m/s固定15°：加速度η²96.62%、横摆角速度η²99.85%；角度扫±30°固定初速10m/s：99.14%、99.9989%。η²取决于窄协议和小组内方差，不是普适贡献率；加速度-有符号转角Pearson近0为左右抵消；速度-横摆幅值非单调。速度是初始平面速度大小非实时vx；组合数据左右转会抵消有符号yaw的速度主效应。详见REPORT.md/results.json和复算脚本，未声称速度角度之外都不重要。
+
+## 29. 横摆运动学偏差物理检查（2026-10-20）
+
+`logdir/yaw_kinematic_audit_20261020/`新增17条物理探测×2秒，dt0.1；非训练。单位/符号/实际wheelbase2.488m复核正确，15°系统度数对应wheel弧度0.2618，obs yaw与刚体一致。10m/s初速、2秒端点用实测vx计算rkin，小转角1/3/5°实测/预测1.004/1.003/1.003；15°0.721、30°0.437，伴skidInfo<1；提高Bullet friction slip0.75→3或10，15°比例恢复0.994。15°名义工况比例0.1秒0.199→0.5秒0.590→2秒0.721，故旧0.5秒响应偏差同时包含瞬态和摩擦限制；不能归因为单纯时间窗或单位。摩擦参数不等同道路mu；2秒不宣称所有工况严格稳态。无碰撞无终止，训练代码/环境源未改。REPORT/summary.json/steps.csv/脚本齐全。

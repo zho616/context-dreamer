@@ -1,0 +1,43 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/best.pt",
+  "checkpoint_sha256": "b3168a3d075ec09a6e89152f37b8ce488a8f322bf9d0ceaa0f0d43a16fd7a1fa",
+  "checkpoint_step": 310001,
+  "source_root": "/home/server/projects/r2dreamer/logdir/tintersection_mass_friction_500k_20261021/training/source",
+  "episodes_requested": 100,
+  "seed_start": 10420,
+  "seed_end": 10519,
+  "inference_seed_offset": 12345,
+  "context_enabled": false,
+  "context_injection": "dali_shallow",
+  "context_actor_critic": false,
+  "evaluation": "new maps; overridden chassis pool; training scale distribution; frozen weights",
+  "eval_models": [
+    "xl"
+  ],
+  "eval_mass_scales": [
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4
+  ],
+  "eval_steering_scales": [
+    1.0
+  ],
+  "eval_friction_scales": [
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4
+  ],
+  "policy": "actor mode; stochastic RSSM posterior with fixed per-episode RNG seed"
+}

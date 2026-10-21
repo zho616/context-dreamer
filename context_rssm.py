@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from rssm import RSSM
+from networks import BlockLinear
 from tools import weight_init_
 
 
@@ -49,15 +50,62 @@ class ModulatedDeter(nn.Module):
         return update * cand + (1 - update) * deter
 
 
+class DaliJointDeter(nn.Module):
+    """DALI img_step input order/projection with R2Dreamer's block-GRU core.
+
+    DALI: concat(flat(z), action, detached context) -> img_in -> GRU.
+    Match DALI's bias-free joint affine + LayerNorm(eps=1e-3) + SiLU,
+    removing R2's three separate input projections. Retain R2 block gates.
+    No direct context input to the prior/posterior heads.
+    """
+    def __init__(self, base, context_dim=8):
+        super().__init__()
+        self.blocks = base.blocks
+        self.dynlayers = base.dynlayers
+        deter = base._dyn_in0[0].in_features
+        hidden = base._dyn_in1[0].out_features
+        inputs = base._dyn_in1[0].in_features + base._dyn_in2[0].in_features + context_dim
+        self.img_in = nn.Sequential(
+            nn.Linear(inputs, hidden, bias=False), nn.LayerNorm(hidden, eps=1e-3),
+            type(base._dyn_in1[2])())
+        # LayerNorm already starts with unit scale/zero shift. The repository
+        # initializer handles RMSNorm but not LayerNorm's one-dimensional weight.
+        self.img_in[0].apply(weight_init_)
+        self._dyn_hid = base._dyn_hid
+        self._dyn_hid.dyn_hid_0 = BlockLinear((hidden + deter // self.blocks) * self.blocks, deter, self.blocks)
+        self._dyn_hid.dyn_hid_0.apply(weight_init_)
+        self._dyn_gru = base._dyn_gru
+
+    def forward(self, stoch, deter, action, context):
+        action = action / torch.clip(action.abs(), min=1.).detach()
+        flat = stoch.reshape(action.shape[0], -1)
+        x = self.img_in(torch.cat((flat, action, context.detach().to(flat.dtype)), -1))
+        x = x[:, None].expand(-1, self.blocks, -1)
+        x = torch.cat((deter.reshape(-1, self.blocks, deter.shape[-1] // self.blocks), x), -1)
+        x = self._dyn_hid(x.reshape(action.shape[0], -1))
+        gates = self._dyn_gru(x).reshape(action.shape[0], self.blocks, -1).chunk(3, -1)
+        reset, cand, update = (g.reshape_as(deter) for g in gates)
+        cand = torch.tanh(torch.sigmoid(reset) * cand)
+        update = torch.sigmoid(update - 1)
+        return update * cand + (1 - update) * deter
+
+
 class ContextRSSM(RSSM):
     def __init__(self, config, embed_size, act_dim, injection="recurrent_concat"):
         super().__init__(config, embed_size, act_dim)
         self.injection = injection
-        if injection == "recurrent_concat":
+        if injection in ("recurrent_concat", "dali_deep"):
             first = self._deter_net._dyn_in1[0]
             layer = nn.Linear(first.in_features + 8, first.out_features)
             layer.apply(weight_init_)
             self._deter_net._dyn_in1[0] = layer
+        elif injection == "dali_deep_joint":
+            self._deter_net = DaliJointDeter(self._deter_net)
+        elif injection == "dali_shallow":
+            name, first = next(iter(self._obs_net.named_children()))
+            layer = nn.Linear(first.in_features + 8, first.out_features)
+            layer.apply(weight_init_)
+            self._obs_net._modules[name] = layer
         elif injection == "adarms_deter":
             self._deter_net = ModulatedDeter(self._deter_net)
         elif injection == "prior_posterior":
@@ -70,11 +118,11 @@ class ContextRSSM(RSSM):
             raise ValueError(f"Unknown context injection: {injection}")
 
     def _transition(self, stoch, deter, action, context):
-        if self.injection == "recurrent_concat":
+        if self.injection in ("recurrent_concat", "dali_deep"):
             flat = stoch.reshape(action.shape[0], -1)
             inputs = torch.cat((flat, context.detach().to(flat.dtype)), -1)
             return self._deter_net(inputs, deter, action)
-        if self.injection == "adarms_deter":
+        if self.injection in ("adarms_deter", "dali_deep_joint"):
             return self._deter_net(stoch, deter, action, context)
         return self._deter_net(stoch, deter, action)
 
@@ -97,7 +145,7 @@ class ContextRSSM(RSSM):
         context = torch.where(reset[:, None], 0., context.detach())
         deter = self._transition(stoch, deter, prev_action, context)
         inputs = (deter, embed)
-        if self.injection == "prior_posterior":
+        if self.injection in ("prior_posterior", "dali_shallow"):
             inputs += (context.to(embed.dtype),)
         logit = self._obs_net(torch.cat(inputs, -1))
         return self.get_dist(logit).rsample(), deter, logit

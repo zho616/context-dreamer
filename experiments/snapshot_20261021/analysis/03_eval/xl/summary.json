@@ -1,0 +1,67 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/context_kinematics_500k_20261015_180340/r2dreamer_context/best.pt",
+  "checkpoint_sha256": "ebca01f848954bc2b0478e0db3623f699a29e016dd96559ab9321f1309650b54",
+  "checkpoint_step": 480006,
+  "source_root": "/home/server/projects/r2dreamer/logdir/context_kinematics_500k_20261015_180340/source",
+  "episodes_requested": 100,
+  "seed_start": 10420,
+  "seed_end": 10519,
+  "inference_seed_offset": 12345,
+  "context_enabled": true,
+  "evaluation": "new maps; overridden chassis pool; training scale distribution; frozen weights",
+  "eval_models": [
+    "xl"
+  ],
+  "eval_mass_scales": [
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2
+  ],
+  "eval_steering_scales": [
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2
+  ],
+  "policy": "actor mode; stochastic RSSM posterior with fixed per-episode RNG seed",
+  "status": "completed",
+  "completed_episodes": 100,
+  "elapsed_seconds": 132.75065775800613,
+  "summary": {
+    "success": 0.21,
+    "crash": 0.23,
+    "out_of_road": 0.56,
+    "timeout": 0.0,
+    "reward": 80.22271282647935,
+    "route_completion": 0.618033653082635,
+    "steps": 148.75,
+    "mean_speed_km_h": 18.286422872356162,
+    "episodes": 100,
+    "success_count": 21,
+    "success_wilson95": [
+      0.141656540619153,
+      0.29979968834089865
+    ]
+  },
+  "per_model": {
+    "xl": {
+      "success": 0.21,
+      "crash": 0.23,
+      "out_of_road": 0.56,
+      "timeout": 0.0,
+      "reward": 80.22271282647935,
+      "route_completion": 0.618033653082635,
+      "steps": 148.75,
+      "mean_speed_km_h": 18.286422872356162,
+      "episodes": 100,
+      "success_count": 21,
+      "success_wilson95": [
+        0.141656540619153,
+        0.29979968834089865
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/best.pt",
+  "step": 340002,
+  "sha256": "cb7c3b25e24aeff1db91bed7a4e97dc7e479554906ceea257171a47c43acdbfc",
+  "source": "/home/server/projects/r2dreamer/logdir/context_swap_dali_joint_500k_20261020_run1/training/source",
+  "corpus": "/home/server/projects/r2dreamer/logdir/world_model_context_validation_20261019_cpu",
+  "origins_sha256": "721db5ffb8924a1b825b8da8b7e97bc5afe1912d07a377a195a683bd43fcf3d4",
+  "draws": 3,
+  "device": "cuda:0",
+  "precision": "float32, highest matmul precision",
+  "protocol": "Common natural trajectories, action-conditioned open loop, dynamic predicted context, no future observations/contexts. No predicted-continuation gating; post-episode targets masked.",
+  "corpus_limits": "10 maps (30000..30009), 5 nominal chassis, 2 reference collectors. One training seed; not the random-profile driving test."
+}

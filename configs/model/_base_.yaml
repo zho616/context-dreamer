@@ -183,7 +183,8 @@ critic:
 # Opt-in physical history branch; baseline architecture stays unchanged when false.
 context:
   enabled: false
-  injection: recurrent_concat # cRSSM/DALI recurrent input route; legacy: adarms_deter, prior_posterior
+  injection: recurrent_concat # Also dali_deep: recurrent + prediction heads + actor/critic.
   actor_critic: false # Also concatenate detached context to actor, critic and slow critic.
   rollout: dynamic
   aux_weight: 1.0
+  swap_weight: 0.0 # Same chassis, different episode, one-step context exchange.

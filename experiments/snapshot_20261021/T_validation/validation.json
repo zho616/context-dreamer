@@ -1,0 +1,7 @@
+{
+  "unit_tests": 48,
+  "result": "passed",
+  "smoke_directory": "smoke_final",
+  "physics": "Fresh Bullet wheel handles; all4 wheel FrictionSlip values verified across30 repeated varying-friction resets; deterministic seeded reset checked",
+  "swap": "Cross-friction mismatch rejected by existing exhaustive SWAP_PROFILE_KEYS test; full smoke swap pairs>0"
+}

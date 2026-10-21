@@ -1,0 +1,15 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/best.pt",
+  "checkpoint_sha256": "3a4f48460f17ca912bbd1e47e3044522fac15c86ee7c7a7c2c1975a141e0ef4a",
+  "step": 420007,
+  "source": "/home/server/projects/r2dreamer/logdir/context_swap_deep1_500k_20261020/training/source",
+  "collection_script_sha256": "280c96d7c122087971d038fb65332d7dba80a350355a9b16222dab74103b1627",
+  "episodes_per_split": 20,
+  "inference_seed_offset": 12345,
+  "policy": "actor mode, stochastic RSSM posterior, fixed per-episode seed; float32 high matmul precision",
+  "splits": {
+    "new_maps": 10020,
+    "s": 10320,
+    "xl": 10420
+  }
+}

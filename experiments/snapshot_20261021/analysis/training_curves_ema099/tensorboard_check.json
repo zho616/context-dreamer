@@ -1,0 +1,38 @@
+{
+  "01_500K_baseline": {
+    "episode/eval_crash": {
+      "points": 51,
+      "smoothed_final_display_units": 16.81921630532697
+    },
+    "episode/eval_route_completion": {
+      "points": 51,
+      "smoothed_final_display_units": 56.275072121385776
+    },
+    "episode/eval_score": {
+      "points": 51,
+      "smoothed_final_display_units": 78.94920625481016
+    },
+    "episode/eval_success": {
+      "points": 51,
+      "smoothed_final_display_units": 33.1987043951618
+    }
+  },
+  "11_500K_state4_DALI_shallow_swap1": {
+    "episode/eval_crash": {
+      "points": 51,
+      "smoothed_final_display_units": 20.53119292093268
+    },
+    "episode/eval_route_completion": {
+      "points": 51,
+      "smoothed_final_display_units": 63.19776178384761
+    },
+    "episode/eval_score": {
+      "points": 51,
+      "smoothed_final_display_units": 92.19154167279702
+    },
+    "episode/eval_success": {
+      "points": 51,
+      "smoothed_final_display_units": 38.542945050771905
+    }
+  }
+}

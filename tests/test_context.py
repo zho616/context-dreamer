@@ -184,9 +184,36 @@ class ContextTests(unittest.TestCase):
         _,reset_h2,_=rssm.obs_step(z+1,h+1,a+1,embed,~reset,ctx+1)
         torch.testing.assert_close(reset_h1,reset_h2)
 
+    def test_dali_joint_input_order_gradients_and_reset(self):
+        from context_rssm import ContextRSSM
+        rssm = ContextRSSM(config().model.rssm, 16, 2, injection='dali_deep_joint')
+        z, h, a = torch.randn(3, 4, 4), torch.randn(3, 32), torch.randn(3, 2)
+        ctx = torch.randn(3, 8, requires_grad=True)
+        seen = []
+        hook = rssm._deter_net.img_in.register_forward_pre_hook(lambda module, args: seen.append(args[0]))
+        embed, reset = torch.randn(3, 16), torch.zeros(3, dtype=torch.bool)
+        _, h1, q1 = rssm.obs_step(z, h, a, embed, reset, ctx)
+        hook.remove()
+        expected = torch.cat((z.flatten(1), a / a.abs().clamp_min(1), ctx.detach()), -1)
+        torch.testing.assert_close(seen[0], expected)
+        self.assertFalse(hasattr(rssm._deter_net, '_dyn_in1'))
+        (h1.square().mean() + q1.square().mean()).backward()
+        self.assertIsNone(ctx.grad)
+        weight_grad = rssm._deter_net.img_in[0].weight.grad
+        for columns in (slice(0, 16), slice(16, 18), slice(18, 26)):
+            self.assertGreater(weight_grad[:, columns].abs().sum().item(), 0)
+        _, h2, _ = rssm.obs_step(z, h, a, embed, reset, ctx + 1)
+        self.assertFalse(torch.allclose(h1, h2))
+        _, r1, _ = rssm.obs_step(z, h, a, embed, ~reset, ctx)
+        _, r2, _ = rssm.obs_step(z + 1, h + 1, a + 1, embed, ~reset, ctx + 1)
+        torch.testing.assert_close(r1, r2)
+        _, p1 = rssm.prior(h1.detach(), ctx)
+        _, p2 = rssm.prior(h1.detach(), ctx + 1)
+        torch.testing.assert_close(p1, p2)
+
     def test_both_methods_update_and_isolation(self):
         for method in ('r2dreamer','dreamer'):
-            for injection in (None,"recurrent_concat","prior_posterior","adarms_deter","recurrent_actor_critic"):
+            for injection in (None,"recurrent_concat","prior_posterior","adarms_deter","recurrent_actor_critic","dali_deep","dali_deep_joint","dali_shallow"):
                 enabled = injection is not None
                 with self.subTest(method=method,injection=injection):
                     c=config(method,enabled); data,obs,act=inputs()
@@ -243,5 +270,83 @@ class ContextTests(unittest.TestCase):
             hook=model._frozen_actor.register_forward_pre_hook(lambda m,args:captured.append(args[0].clone()))
             model.act(reset_data,model.get_initial_state(2)); hook.remove()
             self.assertTrue((captured[0][...,-8:]==0).all())
+
+    def test_deep_heads_swap_update_and_isolation(self):
+        from context import SWAP_PROFILE_KEYS
+        c = config()
+        c.model.context.injection = 'dali_deep_joint'
+        c.model.context.swap_weight = 1.0
+        data, _, act = inputs()
+        data['ctx_episode_uid'] = torch.tensor([[0, 1], [1, 1]])[:, None].expand(2, 7, 2).clone()
+        for key in SWAP_PROFILE_KEYS:
+            data[key] = torch.ones(2, 7, 1)
+        obs = gym.spaces.Dict({k: gym.spaces.Box(-np.inf, np.inf, shape=tuple(v.shape[2:]), dtype=np.float32)
+                              for k, v in data.items() if k not in ('action', 'reward')})
+        model = Dreamer(c.model, obs, act)
+        self.assertTrue(model.context_actor_critic)
+        self.assertEqual(model.rssm._img_net[0].in_features, model.rssm._deter)
+        self.assertEqual(model.rssm._obs_net[0].in_features, model.rssm._deter + model.embed_size)
+        # Every Deep prediction head receives aligned detached context.
+        ctx = model.context_encoder(data['ctx_history'], data['ctx_mask'])
+        feat = torch.randn(2, 7, model.rssm.feat_size, requires_grad=True)
+        combined = model._prediction_feat(feat, ctx)
+        torch.testing.assert_close(combined[..., -8:], ctx)
+        model.reward(combined).log_prob(data['reward']).mean().backward()
+        self.assertTrue(all(p.grad is None for p in model.context_encoder.parameters()))
+        model.zero_grad(set_to_none=True)
+        _, metrics = model._cal_grad(data, model.rssm.initial(2))
+        self.assertGreater(metrics['context/swap_pairs'].item(), 0)
+        self.assertEqual(model._loss_scales['context_swap'], 1.0)
+        self.assertTrue(all(torch.isfinite(v).all() for v in metrics.values() if torch.is_tensor(v)))
+        # Prediction readouts start at zero, so hidden/input columns receive
+        # gradients only after the first optimizer step updates the readout.
+        model._scaler.unscale_(model._optimizer)
+        model._scaler.step(model._optimizer)
+        model._scaler.update()
+        model.zero_grad(set_to_none=True)
+        model._cal_grad(data, model.rssm.initial(2))
+        for head in (model.reward, model.cont, model.prj, model.actor, model.value):
+            first = next(m for m in head.modules() if isinstance(m, torch.nn.Linear))
+            self.assertEqual(first.in_features, model.rssm.feat_size + 8)
+            self.assertGreater(first.weight.grad[:, -8:].abs().sum().item(), 0)
+        self.assertTrue(any(p.grad is not None and p.grad.abs().sum() > 0
+                            for p in model.context_encoder.parameters()))
+
+    def test_shallow_only_conditions_posterior(self):
+        from context_rssm import ContextRSSM
+        c = config()
+        c.model.context.injection = 'dali_shallow'
+        data, obs, act = inputs()
+        model = Dreamer(c.model, obs, act)
+        rssm = model.rssm
+        self.assertFalse(model.context_actor_critic)
+        self.assertFalse(model.context_deep)
+        self.assertEqual(rssm._obs_net[0].in_features, rssm._deter + model.embed_size + 8)
+        self.assertEqual(rssm._img_net[0].in_features, rssm._deter)
+        self.assertEqual(rssm._deter_net._dyn_in1[0].in_features, rssm.flat_stoch)
+        for module in (model.actor, model.value, model.reward, model.cont, model.prj):
+            first = next(m for m in module.modules() if isinstance(m, torch.nn.Linear))
+            self.assertEqual(first.in_features, rssm.feat_size)
+        z, h = rssm.initial(3)
+        a, embed = torch.randn(3, 2), torch.randn(3, model.embed_size)
+        ctx = torch.randn(3, 8, requires_grad=True)
+        reset = torch.zeros(3, dtype=torch.bool)
+        _, h1, q1 = rssm.obs_step(z, h, a, embed, reset, ctx)
+        _, h2, q2 = rssm.obs_step(z, h, a, embed, reset, ctx + 1)
+        torch.testing.assert_close(h1, h2)
+        self.assertFalse(torch.allclose(q1, q2))
+        _, p1 = rssm.prior(h1, ctx)
+        _, p2 = rssm.prior(h1, ctx + 1)
+        torch.testing.assert_close(p1, p2)
+        _, ih1 = rssm.img_step(z, h, a, ctx)
+        _, ih2 = rssm.img_step(z, h, a, ctx + 1)
+        torch.testing.assert_close(ih1, ih2)
+        q1.square().mean().backward()
+        self.assertIsNone(ctx.grad)
+        self.assertGreater(rssm._obs_net[0].weight.grad[:, -8:].abs().sum().item(), 0)
+        _, rh1, rq1 = rssm.obs_step(z, h, a, embed, ~reset, ctx)
+        _, rh2, rq2 = rssm.obs_step(z + 1, h + 1, a + 1, embed, ~reset, ctx + 1)
+        torch.testing.assert_close(rh1, rh2)
+        torch.testing.assert_close(rq1, rq2)
 
 if __name__=='__main__': unittest.main()

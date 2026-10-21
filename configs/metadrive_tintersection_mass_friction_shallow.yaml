@@ -1,0 +1,11 @@
+defaults:
+  - metadrive_tintersection_mass_friction
+  - _self_
+
+model:
+  context:
+    enabled: true
+    injection: dali_shallow
+    actor_critic: false
+    aux_weight: 1.0
+    swap_weight: 1.0

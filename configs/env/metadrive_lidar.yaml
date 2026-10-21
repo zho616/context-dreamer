@@ -1,4 +1,5 @@
 task: metadrive_roundabout
+map_block: O  # Native MetaDrive block: O=roundabout, T=T-intersection.
 steps: 500000
 env_num: 8
 eval_episode_num: 20
@@ -60,6 +61,8 @@ chassis:
   models: [default, m, l]
   mass_scales: [0.8, 0.9, 1.0, 1.1, 1.2]
   steering_scales: [0.8, 0.9, 1.0, 1.1, 1.2]
+  friction_scales: [1.0]
   eval_models: ${env.chassis.models}
   eval_mass_scales: ${env.chassis.mass_scales}
   eval_steering_scales: ${env.chassis.steering_scales}
+  eval_friction_scales: ${env.chassis.friction_scales}

@@ -1,0 +1,8 @@
+defaults:
+  - metadrive_context_swap_dali_shallow
+  - _self_
+
+logdir: logdir/metadrive_tintersection_shallow_swap1/${now:%Y-%m-%d}/${now:%H-%M-%S}
+env:
+  task: metadrive_tintersection
+  map_block: T

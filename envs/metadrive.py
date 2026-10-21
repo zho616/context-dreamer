@@ -19,7 +19,7 @@ class RandomRoundaboutSpawnManager(BaseManager):
         current_map = self.engine.map_manager.current_map
         road_network = current_map.road_network
         first_socket = current_map.blocks[0].get_socket_list()[0]
-        # First socket faces into the ring; the other sockets face out of it.
+        # First socket faces into the junction; other sockets face out of it.
         entries = [first_socket.positive_road]
         exits = [first_socket.negative_road]
         for socket in current_map.blocks[-1].get_socket_list():
@@ -76,7 +76,8 @@ class RoundaboutEnv(MetaDriveEnv):
                            random_roundabout_spawn=False, spawn_random_seed=0,
                            spawn_longitude_min=5.0, spawn_longitude_max=25.0,
                            spawn_lateral_max=0.5, chassis_enabled=False,
-                           chassis_spec=dict(models=["default"], mass_scales=[1.0], steering_scales=[1.0]),
+                           chassis_spec=dict(models=["default"], mass_scales=[1.0], steering_scales=[1.0],
+                                             friction_scales=[1.0]),
                            chassis_random_seed=0))
         config["vehicle_config"].update(dict(max_speed_km_h=80.0))
         return config
@@ -159,7 +160,7 @@ class RoundaboutEnv(MetaDriveEnv):
 
 class MetaDrive(gym.Env):
     def __init__(self, config, env_id=0, evaluation=False, *, use_render=False):
-        if config.task != "metadrive_roundabout":
+        if config.task not in ("metadrive_roundabout", "metadrive_tintersection"):
             raise ValueError(f"Unsupported MetaDrive task: {config.task}")
         self._action_repeat = int(config.action_repeat)
         if self._action_repeat < 1:
@@ -174,6 +175,7 @@ class MetaDrive(gym.Env):
         self._rng = np.random.default_rng(int(config.seed) + env_id + (1000000 if evaluation else 0))
         self._evaluation = evaluation
         self._env_id = env_id
+        self._context_episode_counter = 0
         self._eval_stride = min(int(getattr(config, "eval_env_num", config.eval_episode_num)),
                                 int(config.eval_episode_num))
         self._eval_next_index = env_id
@@ -185,6 +187,7 @@ class MetaDrive(gym.Env):
             prefix = "eval_" if evaluation else ""
             chassis_spec = {key: list(getattr(chassis, prefix + key)) for key in (
                 "models", "mass_scales", "steering_scales")}
+            chassis_spec["friction_scales"] = list(getattr(chassis, prefix + "friction_scales", [1.0]))
             validate_spec(chassis_spec)
             # Dedicated stream avoids coupling chassis to maps/spawn positions.
             self._chassis_seed = int(config.seed)
@@ -193,11 +196,14 @@ class MetaDrive(gym.Env):
         reward_mode = str(getattr(config.reward, "mode", "additive"))
         if reward_mode not in ("additive", "metadrive", "paper"):
             raise ValueError(f"Unknown reward mode: {reward_mode}")
+        map_block = str(getattr(config, "map_block", "O"))
+        if map_block not in ("O", "T"):
+            raise ValueError(f"Unsupported MetaDrive map block: {map_block}")
         self._env = RoundaboutEnv(
             dict(
                 # Explicit generation config allows lane_num to be customized.
-                # O is the Roundabout block ID (plus the initial straight road).
-                map_config=dict(type="block_sequence", config="O", lane_num=int(config.lane_num)),
+                # Native block ID, following the initial straight road.
+                map_config=dict(type="block_sequence", config=map_block, lane_num=int(config.lane_num)),
                 start_seed=self._start_seed,
                 num_scenarios=self._num_scenarios,
                 store_map=False,
@@ -237,7 +243,8 @@ class MetaDrive(gym.Env):
                     ),
                 ),
                 chassis_enabled=self._chassis_enabled,
-                chassis_spec=chassis_spec or dict(models=["default"], mass_scales=[1.0], steering_scales=[1.0]),
+                chassis_spec=chassis_spec or dict(models=["default"], mass_scales=[1.0], steering_scales=[1.0],
+                                                 friction_scales=[1.0]),
                 log_level=40,
             )
         )
@@ -266,6 +273,7 @@ class MetaDrive(gym.Env):
                 spaces[key] = gym.spaces.Box(-np.inf, np.inf, shape=shape, dtype=np.float32)
             spaces["ctx_mask"] = gym.spaces.Box(0, 1, shape=(5,), dtype=np.bool_)
             spaces["ctx_collision"] = gym.spaces.Box(0, 1, shape=(), dtype=np.bool_)
+            spaces["ctx_episode_uid"] = gym.spaces.Box(0, np.iinfo(np.int64).max, shape=(2,), dtype=np.int64)
         self.observation_space = gym.spaces.Dict(spaces)
 
     @staticmethod
@@ -314,6 +322,7 @@ class MetaDrive(gym.Env):
             )
             self._env.config["chassis_random_seed"] = chassis_seed
         state, _ = self._env.reset(seed=seed)
+        self._context_episode_counter += 1
         obs = self._obs(state, first=True)
         if getattr(self, "_context_history", None) is not None:
             obs.update(self._context_history.observe(self._env.vehicle))
@@ -327,6 +336,9 @@ class MetaDrive(gym.Env):
         return dict(self._env.engine.chassis_manager.current)
 
     def _add_chassis_logs(self, obs):
+        if getattr(self, "_context_history", None) is not None:
+            obs["ctx_episode_uid"] = np.array(
+                [self._env_id, self._context_episode_counter], dtype=np.int64)
         if getattr(self, "_chassis_enabled", False):
             from envs.chassis import LOG_KEYS
             current = self.chassis_parameters

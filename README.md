@@ -1,3 +1,10 @@
+# Context-Dreamer experiments
+
+This fork adds vehicle dynamics context learning and chassis randomization to R2-Dreamer.
+See the [experiment archive](experiments/README.md), [server reproduction guide](docs/server_training.md),
+and [current T-intersection setup](docs/context_tintersection_mass_friction_500k.md).
+The upstream implementation and credits are retained below.
+
 ## R2-Dreamer: Redundancy-Reduced World Models without Decoders or Augmentation
 
 This repository provides the official implementation of [R2-Dreamer][r2dreamer] (ICLR 2026), a decoder-free, augmentation-free world model with redundancy-reducing regularization on latent representations. It also includes an efficient PyTorch DreamerV3 reproduction that trains **~5x faster** than a widely used [codebase][dreamerv3-torch], along with other baselines. Selecting R2-Dreamer via the config provides an additional **~1.6x speedup** over this baseline.

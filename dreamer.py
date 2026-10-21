@@ -32,14 +32,17 @@ class Dreamer(nn.Module):
 
         context_config = getattr(config, "context", None)
         self.context_enabled = bool(context_config and context_config.enabled)
-        self.context_actor_critic = self.context_enabled and bool(getattr(context_config, "actor_critic", False))
+        self.context_shallow = self.context_enabled and context_config.injection == "dali_shallow"
+        self.context_deep = self.context_enabled and context_config.injection in ("dali_deep", "dali_deep_joint")
+        self.context_actor_critic = self.context_enabled and not self.context_shallow and (
+            self.context_deep or bool(getattr(context_config, "actor_critic", False)))
         rssm_class = rssm.RSSM
         rssm_kwargs = {}
         if self.context_enabled:
             from context_rssm import ContextRSSM
             if self.rep_loss not in ("r2dreamer", "dreamer") or self.act_dim != 2 or hasattr(act_space, "n") or hasattr(act_space, "multi_discrete"):
                 raise ValueError("Context supports continuous two-action R2Dreamer/DreamerV3 only")
-            if context_config.injection not in ("recurrent_concat", "prior_posterior", "adarms_deter"):
+            if context_config.injection not in ("recurrent_concat", "prior_posterior", "adarms_deter", "dali_deep", "dali_deep_joint", "dali_shallow"):
                 raise ValueError("Unknown context injection")
             rssm_kwargs["injection"] = str(context_config.injection)
             self.context_rollout = str(context_config.rollout)
@@ -67,8 +70,9 @@ class Dreamer(nn.Module):
             self.act_dim,
             **rssm_kwargs,
         )
-        self.reward = networks.MLPHead(config.reward, self.rssm.feat_size)
-        self.cont = networks.MLPHead(config.cont, self.rssm.feat_size)
+        prediction_size = self.rssm.feat_size + (8 if self.context_deep else 0)
+        self.reward = networks.MLPHead(config.reward, prediction_size)
+        self.cont = networks.MLPHead(config.cont, prediction_size)
 
         config.actor.shape = (act_space.n,) if hasattr(act_space, "n") else tuple(map(int, act_space.shape))
         self.act_discrete = False
@@ -107,7 +111,7 @@ class Dreamer(nn.Module):
         if self.rep_loss == "dreamer":
             self.decoder = networks.MultiDecoder(
                 config.decoder,
-                self.rssm._deter,
+                self.rssm._deter + (8 if self.context_deep else 0),
                 self.rssm.flat_stoch,
                 shapes,
             )
@@ -116,7 +120,7 @@ class Dreamer(nn.Module):
             modules.update({"decoder": self.decoder})
         elif self.rep_loss == "r2dreamer" or self.rep_loss == "infonce":
             # add projector for latent to embedding
-            self.prj = Projector(self.rssm.feat_size, self.embed_size)
+            self.prj = Projector(prediction_size, self.embed_size)
             modules.update({"projector": self.prj})
             self.barlow_lambd = float(config.r2dreamer.lambd)
         elif self.rep_loss == "dreamerpro":
@@ -159,6 +163,14 @@ class Dreamer(nn.Module):
             if not math.isfinite(aux_weight) or aux_weight < 0:
                 raise ValueError("context.aux_weight must be finite and nonnegative")
             self._loss_scales["context_aux"] = aux_weight
+            self.context_swap_weight = float(getattr(context_config, "swap_weight", 0.0))
+            if not math.isfinite(self.context_swap_weight) or self.context_swap_weight < 0:
+                raise ValueError("context.swap_weight must be finite and nonnegative")
+            if self.context_swap_weight:
+                from context import SWAP_PROFILE_KEYS
+                if not set((*SWAP_PROFILE_KEYS, "ctx_episode_uid")).issubset(obs_space.spaces):
+                    raise ValueError("Context exchange requires chassis metadata and true episode IDs")
+                self._loss_scales["context_swap"] = self.context_swap_weight
             modules.update(context_encoder=self.context_encoder, context_dynamics=self.context_dynamics)
         # count number of parameters in each module
         for key, module in modules.items():
@@ -416,8 +428,13 @@ class Dreamer(nn.Module):
             from context import auxiliary_loss
             context = self.context_encoder(data["ctx_history"], data["ctx_mask"])
             context = torch.where(data["is_first"].bool().reshape(B, T, 1), 0., context)
-            losses["context_aux"], metrics["context/valid_targets"] = auxiliary_loss(
-                self.context_dynamics, data, context)
+            losses["context_aux"], metrics["context/valid_targets"], physical_metrics = auxiliary_loss(
+                self.context_dynamics, data, context, return_metrics=True)
+            metrics.update(physical_metrics)
+            if self.context_swap_weight:
+                from context import context_swap_loss
+                losses["context_swap"], swap_metrics = context_swap_loss(self.context_dynamics, data, context)
+                metrics.update(swap_metrics)
             metrics["context/rms"] = context.detach().square().mean().sqrt()
             extra = (context.detach(),)
         post_stoch, post_deter, post_logit = self.rssm.observe(embed, data["action"], initial, data["is_first"], *extra)
@@ -429,16 +446,18 @@ class Dreamer(nn.Module):
         # === Representation / auxiliary losses ===
         # (B, T, F)
         feat = self.rssm.get_feat(post_stoch, post_deter)
+        prediction_feat = self._prediction_feat(feat, context if self.context_enabled else None)
         if self.rep_loss == "dreamer":
+            decoder_deter = self._prediction_feat(post_deter, context if self.context_enabled else None)
             recon_losses = {
-                key: torch.mean(-dist.log_prob(data[key])) for key, dist in self.decoder(post_stoch, post_deter).items()
+                key: torch.mean(-dist.log_prob(data[key])) for key, dist in self.decoder(post_stoch, decoder_deter).items()
             }
             losses.update(recon_losses)
         elif self.rep_loss == "r2dreamer":
             # R2-Dreamer: Barlow Twins style redundancy reduction between latent features and encoder embeddings.
             # Flatten batch/time dims for a single cross-correlation matrix.
             # (B, T, F) -> (B*T, F)
-            x1 = self.prj(feat[:, :].reshape(B * T, -1))
+            x1 = self.prj(prediction_feat.reshape(B * T, -1))
             # (B, T, E) -> (B*T, E)
             x2 = embed.reshape(B * T, -1).detach()  # this detach is important
 
@@ -481,9 +500,9 @@ class Dreamer(nn.Module):
             raise NotImplementedError
 
         # reward and continue
-        losses["rew"] = torch.mean(-self.reward(feat).log_prob(to_f32(data["reward"])))
+        losses["rew"] = torch.mean(-self.reward(prediction_feat).log_prob(to_f32(data["reward"])))
         cont = 1.0 - to_f32(data["is_terminal"])
-        losses["con"] = torch.mean(-self.cont(feat).log_prob(cont))
+        losses["con"] = torch.mean(-self.cont(prediction_feat).log_prob(cont))
         # log
         metrics["dyn_entropy"] = torch.mean(self.rssm.get_dist(prior_logit).entropy())
         metrics["rep_entropy"] = torch.mean(self.rssm.get_dist(post_logit).entropy())
@@ -503,9 +522,10 @@ class Dreamer(nn.Module):
         imag_behavior_feat = self._behavior_feat(imag_feat, imag_context if self.context_enabled else None)
 
         # (B*T, T_imag, 1)
-        imag_reward = self._frozen_reward(imag_feat).mode()
+        imag_prediction_feat = self._prediction_feat(imag_feat, imag_context if self.context_enabled else None)
+        imag_reward = self._frozen_reward(imag_prediction_feat).mode()
         # (B*T, T_imag, 1)  probability of continuation
-        imag_cont = self._frozen_cont(imag_feat).mean
+        imag_cont = self._frozen_cont(imag_prediction_feat).mean
         # (B*T, T_imag, 1)
         imag_value = self._frozen_value(imag_behavior_feat).mode()
         imag_slow_value = self._frozen_slow_value(imag_behavior_feat).mode()
@@ -588,6 +608,14 @@ class Dreamer(nn.Module):
         metrics.update({"opt/loss": total_loss})
         return (post_stoch, post_deter), metrics
 
+    def _prediction_feat(self, feat, context=None):
+        """DALI Deep conditions prediction heads; context learns only from auxiliaries."""
+        if not self.context_deep:
+            return feat
+        if context is None or context.shape[:-1] != feat.shape[:-1]:
+            raise ValueError("Prediction heads require time-aligned context")
+        return torch.cat((feat, context.detach().to(feat.dtype)), -1)
+
     def _behavior_feat(self, feat, context=None):
         """Condition decisions on aligned context without training E through RL."""
         if not self.context_actor_critic:
@@ -648,7 +676,7 @@ class Dreamer(nn.Module):
             stoch, deter = self._frozen_rssm.img_step(stoch, deter, action, injected)
             behavior_context = injected
             next_feat = self._frozen_rssm.get_feat(stoch, deter)
-            alive = alive & (self._frozen_cont(next_feat).mean.reshape(-1) > 0.5)
+            alive = alive & (self._frozen_cont(self._prediction_feat(next_feat, injected)).mean.reshape(-1) > 0.5)
         return torch.stack(feats, 1), torch.stack(actions, 1), torch.stack(contexts, 1)
 
     @torch.no_grad()

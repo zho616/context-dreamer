@@ -1,6 +1,16 @@
 # Logs / artifacts
 logdir/
+deployment_bundle/
+.env
+.env.*
+!.env.example
+*.pt
+*.pth
+*.ckpt
+*.npz
+events.out.tfevents.*
 *.hydra/
+!experiments/**/.hydra/
 torch_compile_debug/
 
 # Byte-compiled / optimized / DLL files
@@ -130,3 +140,4 @@ dmypy.json
 # IDE
 .vscode
 .clinerules
+!experiments/**/unit_tests.log

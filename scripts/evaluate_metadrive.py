@@ -79,6 +79,7 @@ def main():
         eval_models=list(config.env.chassis.eval_models) if config.env.chassis.enabled else None,
         eval_mass_scales=list(config.env.chassis.eval_mass_scales) if config.env.chassis.enabled else None,
         eval_steering_scales=list(config.env.chassis.eval_steering_scales) if config.env.chassis.enabled else None,
+        eval_friction_scales=list(getattr(config.env.chassis, 'eval_friction_scales', [1.0])) if config.env.chassis.enabled else None,
         policy='actor mode; stochastic RSSM posterior with fixed per-episode RNG seed')
     (output/'provenance.json').write_text(json.dumps(provenance,indent=2)+'\n')
     rows=[]; started=time.monotonic(); env=None

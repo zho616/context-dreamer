@@ -34,9 +34,17 @@ def main():
                         default=["r2dreamer", "dreamerv3"])
     parser.add_argument("--context-comparison", action="store_true", help="Run baseline and context for each selected method")
     parser.add_argument("--context-only", action="store_true", help="Train only context variants using recurrent concatenation")
-    parser.add_argument("--context-variants", nargs="+", choices=("adarms_deter", "recurrent_actor_critic"),
+    parser.add_argument("--context-swap-weight", type=float, default=0.0,
+                        help="One-step same-chassis cross-episode exchange loss weight")
+    parser.add_argument("--map-block", choices=("O", "T"), default="O",
+                        help="Native MetaDrive junction block; defaults to the existing roundabout")
+    parser.add_argument("--include-baseline", action="store_true",
+                        help="Train an unconditioned baseline before the selected --context-variants")
+    parser.add_argument("--context-variants", nargs="+", choices=("adarms_deter", "recurrent_actor_critic", "dali_deep", "dali_deep_joint", "dali_shallow"),
                         help="Run the requested R2Dreamer/DreamerV3 context variants sequentially")
     parser.add_argument("--chassis-randomization", action="store_true", help="Use three training chassis with discrete mass/steering scales")
+    parser.add_argument("--mass-friction-randomization", action="store_true",
+                        help="Replace steering variation with mass/friction scales0.6..1.4, step0.1")
     parser.add_argument("--reward-mode", choices=("additive", "metadrive", "paper"), default="paper")
     parser.add_argument("--ablations", nargs="+", choices=("ratio256", "buffer200k"))
     parser.add_argument("--source-from", type=pathlib.Path, help="Copy a prior experiment's frozen source")
@@ -45,12 +53,20 @@ def main():
     args = parser.parse_args()
     if args.steps <= 0:
         parser.error("--steps must be positive")
+    if not 0 <= args.context_swap_weight < float("inf"):
+        parser.error("--context-swap-weight must be finite and nonnegative")
+    if args.context_swap_weight and not ((args.context_only or args.context_variants) and args.chassis_randomization):
+        parser.error("Context exchange requires a context variant and --chassis-randomization")
     if args.context_only and (args.context_comparison or args.ablations):
         parser.error("--context-only cannot be combined with --context-comparison or --ablations")
     if args.context_variants and (args.context_only or args.context_comparison or args.ablations):
         parser.error("--context-variants cannot be combined with other variant selectors")
     if args.context_variants and len(set(args.context_variants)) != len(args.context_variants):
         parser.error("Do not repeat a context variant")
+    if args.include_baseline and not args.context_variants:
+        parser.error("--include-baseline requires --context-variants")
+    if args.mass_friction_randomization and not args.chassis_randomization:
+        parser.error("--mass-friction-randomization requires --chassis-randomization")
     if args.evaluate_best and args.smoke:
         parser.error("Do not use --evaluate-best with --smoke")
     root = pathlib.Path(__file__).resolve().parents[1]
@@ -96,25 +112,48 @@ def main():
         for name, _ in methods:
             variant_overrides[name] = ["model.context.enabled=true", "model.context.injection=recurrent_concat"]
     if args.context_variants:
-        methods = [(name + "_" + variant, rep) for name, rep in methods for variant in args.context_variants]
+        methods = [(label, rep) for name, rep in methods
+                   for label in ([name] if args.include_baseline else [])
+                   + [name + "_" + variant for variant in args.context_variants]]
         for name, _ in methods:
+            if name in args.methods:
+                variant_overrides[name] = ["model.context.enabled=false", "model.context.swap_weight=0.0",
+                                           "model.context.actor_critic=false"]
+                continue
             adarms = name.endswith("_adarms_deter")
+            joint = name.endswith("_dali_deep_joint")
+            shallow = name.endswith("_dali_shallow")
+            deep = name.endswith("_dali_deep") or joint
             variant_overrides[name] = ["model.context.enabled=true",
-                f"model.context.injection={'adarms_deter' if adarms else 'recurrent_concat'}",
-                f"model.context.actor_critic={str(not adarms).lower()}"]
+                f"model.context.injection={'dali_shallow' if shallow else 'dali_deep_joint' if joint else 'dali_deep' if deep else 'adarms_deter' if adarms else 'recurrent_concat'}",
+                f"model.context.actor_critic={str(not (adarms or shallow)).lower()}"]
     lateral = 0.2 if args.reward_mode == "additive" else 0.0
     common = [f"env.steps={args.steps}", "env.train_ratio=512", "buffer.max_size=500000",
               "buffer.storage_device=cpu", "env.env_num=8", "env.eval_episode_num=20", "env.eval_env_num=2",
               f"env.reward.mode={args.reward_mode}", f"env.reward.lateral={lateral}",
               "seed=0", "trainer.save_best=true"]
+    if args.map_block != "O":
+        common += [f"env.map_block={args.map_block}", "env.task=metadrive_tintersection"]
     if args.chassis_randomization:
         if not (source / "envs/chassis.py").exists():
             parser.error("Selected source snapshot does not support chassis randomization")
         common += ["env.chassis.enabled=true"]
+    if args.context_swap_weight:
+        common += [f"model.context.swap_weight={args.context_swap_weight}"]
+    if args.mass_friction_randomization:
+        scales = "[0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4]"
+        common += [f"env.chassis.mass_scales={scales}", "env.chassis.steering_scales=[1.0]",
+                   f"env.chassis.friction_scales={scales}"]
     if args.smoke:
         common += ["env.steps=96", "env.env_num=2", "env.eval_episode_num=4", "env.time_limit=16",
                    "batch_size=4", "batch_length=8", "env.train_ratio=8", "buffer.max_size=512",
                    "model.compile=false", "trainer.eval_every=48", "trainer.update_log_every=32"]
+        if args.context_swap_weight:
+            # Smoke only: guarantee cross-episode profile matches to exercise gradients.
+            common += ["env.chassis.models=[default]", "env.chassis.mass_scales=[1.0]",
+                       "env.chassis.steering_scales=[1.0]"]
+            if args.mass_friction_randomization:
+                common += ["env.chassis.friction_scales=[1.0]"]
     versions = {name: importlib.metadata.version(name) for name in
                 ("torch", "torchrl", "tensordict", "metadrive-simulator", "gymnasium", "numpy")}
     status = {"runner_pid": os.getpid(), "created_at": now(), "phase": "queued", "smoke": args.smoke,

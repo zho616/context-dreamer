@@ -1,0 +1,13 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/r2dreamer/best.pt",
+  "step": 440007,
+  "sha256": "2e9997594ef57e1826a47478ba8abb1840dbde02d616cdf1861589b840dfc690",
+  "source": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/source",
+  "corpus": "/home/server/projects/r2dreamer/logdir/world_model_context_validation_20261019_cpu",
+  "origins_sha256": "721db5ffb8924a1b825b8da8b7e97bc5afe1912d07a377a195a683bd43fcf3d4",
+  "draws": 3,
+  "device": "cuda:0",
+  "precision": "float32, highest matmul precision",
+  "protocol": "Common natural trajectories, action-conditioned open loop, dynamic predicted context, no future observations/contexts. No predicted-continuation gating; post-episode targets masked.",
+  "corpus_limits": "10 maps (30000..30009), 5 nominal chassis, 2 reference collectors. One training seed; not the random-profile driving test."
+}

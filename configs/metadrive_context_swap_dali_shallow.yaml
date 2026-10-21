@@ -1,0 +1,9 @@
+defaults:
+  - metadrive_context_swap_deep1
+  - _self_
+
+logdir: logdir/metadrive_context_swap_dali_shallow/${now:%Y-%m-%d}/${now:%H-%M-%S}
+model:
+  context:
+    injection: dali_shallow
+    actor_critic: false

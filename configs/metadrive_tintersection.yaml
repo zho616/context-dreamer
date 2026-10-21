@@ -1,0 +1,8 @@
+defaults:
+  - metadrive_chassis
+  - _self_
+
+logdir: logdir/metadrive_tintersection/${now:%Y-%m-%d}/${now:%H-%M-%S}
+env:
+  task: metadrive_tintersection
+  map_block: T

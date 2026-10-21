@@ -1,0 +1,9 @@
+defaults:
+  - metadrive_tintersection
+  - _self_
+
+env:
+  chassis:
+    mass_scales: [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4]
+    steering_scales: [1.0]
+    friction_scales: [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4]

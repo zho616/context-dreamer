@@ -1,0 +1,14 @@
+- env.steps=500000
+- env.train_ratio=512
+- buffer.max_size=500000
+- buffer.storage_device=cpu
+- env.env_num=8
+- env.eval_episode_num=20
+- env.eval_env_num=2
+- env.reward.mode=paper
+- env.reward.lateral=0.0
+- seed=0
+- trainer.save_best=true
+- env.chassis.enabled=true
+- model.rep_loss=r2dreamer
+- logdir=/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/r2dreamer

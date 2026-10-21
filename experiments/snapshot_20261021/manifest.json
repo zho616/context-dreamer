@@ -1,0 +1,768 @@
+{
+  "created_at": "2026-10-21T09:09:05.633913+00:00",
+  "note": "Snapshot only. T shallow may still be running; metrics keep complete lines only. Source paths refer to the original local logdir. Checkpoints, event files and raw trajectory arrays are excluded.",
+  "files": [
+    {
+      "path": "runs/01_500K_baseline/metrics.jsonl",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/r2dreamer/metrics.jsonl",
+      "bytes": 354726,
+      "sha256": "a24016c87ace59225184d05002ae4b0a87fef3ef97a497a17fc1ed3afc909c4c"
+    },
+    {
+      "path": "runs/01_500K_baseline/.hydra/config.yaml",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/r2dreamer/.hydra/config.yaml",
+      "bytes": 5575,
+      "sha256": "e6d4ec5308f7f1f7e809442b75d36f8ae36284778bc56aef59df1edbc14b4a23"
+    },
+    {
+      "path": "runs/01_500K_baseline/.hydra/overrides.yaml",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/r2dreamer/.hydra/overrides.yaml",
+      "bytes": 391,
+      "sha256": "d434fd6599189eea8adb85372096f1e8f607ca663b75f05fe96d1c85cc36493b"
+    },
+    {
+      "path": "runs/dreamerv3_500K_baseline/metrics.jsonl",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/dreamerv3/metrics.jsonl",
+      "bytes": 352461,
+      "sha256": "52e9dca2b050b7b3851818e54dfb0b6ae258c112aadc0436773604c8e639766d"
+    },
+    {
+      "path": "runs/dreamerv3_500K_baseline/.hydra/config.yaml",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/dreamerv3/.hydra/config.yaml",
+      "bytes": 5573,
+      "sha256": "b29814c4b2a4e82cc51613c8f96cdb9b19d0158d90f3115939920d16c530c1ed"
+    },
+    {
+      "path": "runs/dreamerv3_500K_baseline/.hydra/overrides.yaml",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/dreamerv3/.hydra/overrides.yaml",
+      "bytes": 389,
+      "sha256": "b07f6d9ca892e1357df110645e9cad0b560c4216dff531b1b0fbe23f6b02c0e9"
+    },
+    {
+      "path": "runs/03_500K_state4_recurrent/metrics.jsonl",
+      "source": "logdir/context_kinematics_500k_20261015_180340/r2dreamer_context/metrics.jsonl",
+      "bytes": 376679,
+      "sha256": "5322808c0148de93a7b8b382a7fdad9afcadf368f2e03660ce5c302cdb7ce6e2"
+    },
+    {
+      "path": "runs/03_500K_state4_recurrent/.hydra/config.yaml",
+      "source": "logdir/context_kinematics_500k_20261015_180340/r2dreamer_context/.hydra/config.yaml",
+      "bytes": 5614,
+      "sha256": "a2ff2033ccbfac749316ef6e1c3a07641d156ed39d59e0a65e1e689acb8f0524"
+    },
+    {
+      "path": "runs/03_500K_state4_recurrent/.hydra/overrides.yaml",
+      "source": "logdir/context_kinematics_500k_20261015_180340/r2dreamer_context/.hydra/overrides.yaml",
+      "bytes": 472,
+      "sha256": "2be859e1b795617368f81b8f88306435664ad82aadad127c4583065f0dcf62f9"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/metrics.jsonl",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/metrics.jsonl",
+      "bytes": 510795,
+      "sha256": "8c705738a8d8d2a54aa2e26c5c89c8395ae67dd68f40627d325dcadd15828365"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/.hydra/config.yaml",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/.hydra/config.yaml",
+      "bytes": 5655,
+      "sha256": "7c6b605508f16ddf6c231f0a7578689656519f6785dc12c9ee9bb6b2150362f8"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/.hydra/overrides.yaml",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/.hydra/overrides.yaml",
+      "bytes": 535,
+      "sha256": "724c97e24dd4d26054495e4bc7a4eafd3cf84487f0f8fd25cef17e2c2f069fdc"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/xl/episodes.jsonl",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/xl/episodes.jsonl",
+      "bytes": 46130,
+      "sha256": "9a6565540ad4c6fecc29fb99d10ca290f9eb600a26291080b897ee707769c09b"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/xl/summary.json",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/xl/summary.json",
+      "bytes": 1823,
+      "sha256": "22366ab608c59bb478bee805b619f493d088512be14c820a05d63d27fb6927c4"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/xl/provenance.json",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/xl/provenance.json",
+      "bytes": 927,
+      "sha256": "db205fafb38370951d1c7098604f60cbeace28fcc7de0ac581fcd0f1562dd518"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/new_maps/episodes.jsonl",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/new_maps/episodes.jsonl",
+      "bytes": 45851,
+      "sha256": "61d1c62f6e8ab18a201f2f6973912498c656a88b5c3f6d9017022a28265a2207"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/new_maps/summary.json",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/new_maps/summary.json",
+      "bytes": 2722,
+      "sha256": "c46f36f80c781b14405c4044c9d93bbb8ff61bafd5a5068c32917fdb192d6835"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/new_maps/provenance.json",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/new_maps/provenance.json",
+      "bytes": 933,
+      "sha256": "5278484d673ced48e4c14b800e74bf6610731d34b7317718ef2a2b1bf68e0927"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/s/episodes.jsonl",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/s/episodes.jsonl",
+      "bytes": 45214,
+      "sha256": "6f42369aecd534c844cfed976e08e827b2463fa5d614fc6aa01cee8a9319625c"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/s/summary.json",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/s/summary.json",
+      "bytes": 1815,
+      "sha256": "d218e18ecc8b1d3b9d2fed13aa2df32fe3a618820f7221d5d584c09547c3200c"
+    },
+    {
+      "path": "runs/09_500K_deep_swap1/evaluation/s/provenance.json",
+      "source": "logdir/context_swap_deep1_500k_20261020/training/r2dreamer_dali_deep/evaluation/s/provenance.json",
+      "bytes": 926,
+      "sha256": "0344c731bf06eeb0a4b367a00a3602098a962a2517728b3a97908193560db955"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/metrics.jsonl",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/metrics.jsonl",
+      "bytes": 484886,
+      "sha256": "bfb7f320ad953df10b4cd57fb76f7f425866b5f517ff87b5d82dd6f17cbb4f41"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/.hydra/config.yaml",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/.hydra/config.yaml",
+      "bytes": 5677,
+      "sha256": "0a87f3dd56be811b7e6d23dd7741b3c770be7799ac90aa81c27740ca08371701"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/.hydra/overrides.yaml",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/.hydra/overrides.yaml",
+      "bytes": 557,
+      "sha256": "f6ac383dde1bad6dc814158c5cca3ac9305c20d9cf9c71b4900c3cbfc266a983"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/xl/episodes.jsonl",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/xl/episodes.jsonl",
+      "bytes": 46108,
+      "sha256": "0c66f5000abcb5c0f8449742da938dc5b5e3b4ce7ba036228aad2d21464da7b4"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/xl/summary.json",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/xl/summary.json",
+      "bytes": 1845,
+      "sha256": "0438aa25365178d85784e72501ca8ac0c0f27ebeac38cee153b1ecee98bb0603"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/xl/provenance.json",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/xl/provenance.json",
+      "bytes": 959,
+      "sha256": "f4ca9e19d3259ccf8d4632ca769f7167989647c5c6a51dc9d20eb2c4b31e4145"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/new_maps/episodes.jsonl",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/new_maps/episodes.jsonl",
+      "bytes": 45819,
+      "sha256": "ffcb547736379f46ef6c7e40c12cd37d4429450ec70edd25df1c9d9e0ef24555"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/new_maps/summary.json",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/new_maps/summary.json",
+      "bytes": 2783,
+      "sha256": "36681005b14ebec100e7508f6ad3b158acd182e5feea6be67a0b7a00c0ff3cb1"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/new_maps/provenance.json",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/new_maps/provenance.json",
+      "bytes": 965,
+      "sha256": "ce11006ba15cd36c588c9fbdc6befc5b33e92c76478e76603753e34aeddaaf59"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/s/episodes.jsonl",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/s/episodes.jsonl",
+      "bytes": 45169,
+      "sha256": "396145fa33fde8202b0090ad7a0c52bccaf74ebe66843b2ad3df2182bfb06c15"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/s/summary.json",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/s/summary.json",
+      "bytes": 1849,
+      "sha256": "b79216c5bff92ab7161c2ef6c581b60af4981053794015d8a41b4acd63ec26b9"
+    },
+    {
+      "path": "runs/10_500K_DALI_joint_swap1/evaluation/s/provenance.json",
+      "source": "logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/evaluation/s/provenance.json",
+      "bytes": 958,
+      "sha256": "661b16a306d8566929daf67be27c8aad4b7f6e743812d32224074c89a255a089"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/metrics.jsonl",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/metrics.jsonl",
+      "bytes": 548923,
+      "sha256": "1eb9753ca684ef4d8ff48494e023c6974f78f6620b99b14e4e8ae76570a9afa9"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/.hydra/config.yaml",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/.hydra/config.yaml",
+      "bytes": 5669,
+      "sha256": "c990b93ef3ff24c924813bbbe38f794c7d9a7014a907e9a8dbbed7862b9b3fd9"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/.hydra/overrides.yaml",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/.hydra/overrides.yaml",
+      "bytes": 549,
+      "sha256": "16ff7a32f72f1e360f56388710e69fa8ff8b1328cb19b58a544dcc0862490e03"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/xl/episodes.jsonl",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/xl/episodes.jsonl",
+      "bytes": 46124,
+      "sha256": "b639b80252780a91259083f93a37e7b4eb02253fa641c40b0946c18495798f20"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/xl/summary.json",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/xl/summary.json",
+      "bytes": 1840,
+      "sha256": "c75f3b99a1c6f9cae6f2dcb83253494862fbea77d25677c372680daa046f42c0"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/xl/provenance.json",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/xl/provenance.json",
+      "bytes": 948,
+      "sha256": "ba94337273c94c7d7ebade2379fc1cadafe23c71b442595baab2e64212dde58e"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/new_maps/episodes.jsonl",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/new_maps/episodes.jsonl",
+      "bytes": 45842,
+      "sha256": "9528f1512b19f3497c4ee34cd40ad785c7c52790671efc51dba8e9ac6a778580"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/new_maps/summary.json",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/new_maps/summary.json",
+      "bytes": 2744,
+      "sha256": "728451519b23faa5cec0f4cce93b0d57361d59ab4ba750af271343c3d8725321"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/new_maps/provenance.json",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/new_maps/provenance.json",
+      "bytes": 954,
+      "sha256": "5b8bebc2d0736507950a01fbbda89de71b1e81eb66aed5fcba4dc0608d7738c7"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/s/episodes.jsonl",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/s/episodes.jsonl",
+      "bytes": 45221,
+      "sha256": "0a223eabd0177c4483bb5a74b71781920861215f033df0c906076f084ecc3d0d"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/s/summary.json",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/s/summary.json",
+      "bytes": 1834,
+      "sha256": "46b9d1c4e2abe2c9383106b26593938051c99d62f5d24986800144c35febb5b3"
+    },
+    {
+      "path": "runs/11_500K_DALI_shallow_swap1/evaluation/s/provenance.json",
+      "source": "logdir/context_swap_dali_shallow_500k_20261021/training/r2dreamer_dali_shallow/evaluation/s/provenance.json",
+      "bytes": 947,
+      "sha256": "5ff3873362945cbfa07c0870ebcd1751514733584d782d859afcb667491e99c0"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/metrics.jsonl",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/metrics.jsonl",
+      "bytes": 548142,
+      "sha256": "4fe1619cdcfdc97a77733597bf6efcc025bc6a28e1b4778ad63ef4c7cd97dbe1"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/.hydra/config.yaml",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/.hydra/config.yaml",
+      "bytes": 5845,
+      "sha256": "14122bb5e0dc6696cb491146a5fd06efcec9b41577c0d08e4a9290817add9ae5"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/.hydra/overrides.yaml",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/.hydra/overrides.yaml",
+      "bytes": 753,
+      "sha256": "d1e0619b123644fd41605c2525421aa5127e39b84ad4b2b84666b5ece2c23ed5"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/xl/episodes.jsonl",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/xl/episodes.jsonl",
+      "bytes": 59145,
+      "sha256": "77b46ca936a785134f263027a6f77f8861fdfe7c11a85df8726255c811d9fc08"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/xl/summary.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/xl/summary.json",
+      "bytes": 1943,
+      "sha256": "c481be5fdaef24e45b41d6222034e6bde6ab86739e786aab7468e2cb34f300ea"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/xl/provenance.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/xl/provenance.json",
+      "bytes": 1053,
+      "sha256": "6df22e4f18f2a43241e1b30a8c00418d554ef83eaefc216b2eab39d32db8acca"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/new_maps/episodes.jsonl",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/new_maps/episodes.jsonl",
+      "bytes": 58677,
+      "sha256": "e76c387ff1a87bd93b96b6f35fb5fcd22c0e96455b57ea3a5671c06c0236f16d"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/new_maps/summary.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/new_maps/summary.json",
+      "bytes": 2849,
+      "sha256": "ba1ec2229f6b648f7aee6aebece69080b25d7c11c348d116cb6b99b572abb022"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/new_maps/provenance.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/new_maps/provenance.json",
+      "bytes": 1059,
+      "sha256": "3c3240b2e9cb95371ef9dc1399ee46130e505436dc23d074f59378c3b14326e5"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/s/episodes.jsonl",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/s/episodes.jsonl",
+      "bytes": 58989,
+      "sha256": "e3a9fc0757fcfc90c6125b3bea67f4d31e05f9f9ca4d34f111e4d128df4405b5"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/s/summary.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/s/summary.json",
+      "bytes": 1940,
+      "sha256": "a82594132193139ed62ecc44f394ee981d382e736970109e9f707550cf346d2e"
+    },
+    {
+      "path": "runs/T_mass_friction_baseline/evaluation/s/provenance.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer/evaluation/s/provenance.json",
+      "bytes": 1052,
+      "sha256": "6aaae011bd0e286c5e3fc16239d72e6866417c585e62b3db60f1b90824e957fd"
+    },
+    {
+      "path": "runs/T_mass_friction_shallow/metrics.jsonl",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer_dali_shallow/metrics.jsonl",
+      "bytes": 121656,
+      "sha256": "e5c0b1716c87cee5eecc46e91dcfc0aa080c65c523374b41077728d213a9dc42"
+    },
+    {
+      "path": "runs/T_mass_friction_shallow/.hydra/config.yaml",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer_dali_shallow/.hydra/config.yaml",
+      "bytes": 5857,
+      "sha256": "6e8bd68006d2d95fa889ff1b77a474587fd62f5a1d7701a02187d080e89644b0"
+    },
+    {
+      "path": "runs/T_mass_friction_shallow/.hydra/overrides.yaml",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/r2dreamer_dali_shallow/.hydra/overrides.yaml",
+      "bytes": 772,
+      "sha256": "a13e2c147a774bbbb4e68f24fc32cb0f914d8dc123520849a6e9e0300fca87a8"
+    },
+    {
+      "path": "analysis/baseline_eval/comparison.json",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/comparison.json",
+      "bytes": 5776,
+      "sha256": "dc8dae49c0a095aafb49d0c36c39845d21bbd50002a7979ebe7b31aeb60e3326"
+    },
+    {
+      "path": "analysis/baseline_eval/r2dreamer/episodes.jsonl",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/r2dreamer/episodes.jsonl",
+      "bytes": 45859,
+      "sha256": "1047020e38715247bd11736d34f757a783d9237cae59e464609338b81cfe7464"
+    },
+    {
+      "path": "analysis/baseline_eval/r2dreamer/summary.json",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/r2dreamer/summary.json",
+      "bytes": 2453,
+      "sha256": "34499d3ab022775ebb2fa291eae7b2707761d6d38cb32902f8e612a6785a2e05"
+    },
+    {
+      "path": "analysis/baseline_eval/r2dreamer/provenance.json",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/r2dreamer/provenance.json",
+      "bytes": 644,
+      "sha256": "24154833468b28d956f79c4b1dc7e37963073ccfe0348493f7b4bc44fa141cea"
+    },
+    {
+      "path": "analysis/baseline_eval/dreamerv3/episodes.jsonl",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/dreamerv3/episodes.jsonl",
+      "bytes": 45838,
+      "sha256": "29896be540f2c0ec265bf67b7e07812038f67273e65acb112027c86eae8cb5ef"
+    },
+    {
+      "path": "analysis/baseline_eval/dreamerv3/summary.json",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/dreamerv3/summary.json",
+      "bytes": 2457,
+      "sha256": "fbc43653df4e022d7b4ea40158057fe3c3a78904b2777656daf49f1286268b33"
+    },
+    {
+      "path": "analysis/baseline_eval/dreamerv3/provenance.json",
+      "source": "logdir/chassis_baselines_500k_20261015_020330/best_eval100_20261015_095447/dreamerv3/provenance.json",
+      "bytes": 644,
+      "sha256": "2e1f91d2d45702637c099950e189b58666e0a5d9aae449f2480e020f181ea517"
+    },
+    {
+      "path": "analysis/03_eval/xl/episodes.jsonl",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/xl/episodes.jsonl",
+      "bytes": 46107,
+      "sha256": "ddd1db11caf9e2e35e9efda26c6fc4516278ed95c2e40b3863924412715a49a3"
+    },
+    {
+      "path": "analysis/03_eval/xl/summary.json",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/xl/summary.json",
+      "bytes": 1744,
+      "sha256": "9ecf0a48883a9a2f9675f4ee735aa3d1ff23deb150972eda508cbac2a769a140"
+    },
+    {
+      "path": "analysis/03_eval/xl/provenance.json",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/xl/provenance.json",
+      "bytes": 853,
+      "sha256": "368485cfe37c03cb099ccfcec8f7c27586bd5d93bb2a5f081e62585d62b129ec"
+    },
+    {
+      "path": "analysis/03_eval/new_maps/episodes.jsonl",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/new_maps/episodes.jsonl",
+      "bytes": 45841,
+      "sha256": "f11faea525bfc9906cb23999885c3fbcb6cdb0fbeedb3c2cdbdc767087b16dea"
+    },
+    {
+      "path": "analysis/03_eval/new_maps/summary.json",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/new_maps/summary.json",
+      "bytes": 2670,
+      "sha256": "13741047eb24dabf0297d4bee6903854ed2171fa750aa6b3cd339b761eca1671"
+    },
+    {
+      "path": "analysis/03_eval/new_maps/provenance.json",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/new_maps/provenance.json",
+      "bytes": 859,
+      "sha256": "4cb9cbdd172973afd5b7bd873daa3ee53fe9a49d22736dc5a12363226d80dbfd"
+    },
+    {
+      "path": "analysis/03_eval/s/episodes.jsonl",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/s/episodes.jsonl",
+      "bytes": 45199,
+      "sha256": "f66cc0e300504b3c8211c74eeb079f0f73740d573c51abc5333fa790a2a3fd19"
+    },
+    {
+      "path": "analysis/03_eval/s/summary.json",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/s/summary.json",
+      "bytes": 1744,
+      "sha256": "986d782a18e8d6e16894df244cdf4c3c3833b7d67caf3bc211058e2d1e29519b"
+    },
+    {
+      "path": "analysis/03_eval/s/provenance.json",
+      "source": "logdir/context_kinematics_500k_20261015_180340/comparison_20261016_011017/s/provenance.json",
+      "bytes": 852,
+      "sha256": "6f8ed16f2a2b42a150bda7a1b5202c4c551b9d659c6fb47fd4d1e74ad3a407ca"
+    },
+    {
+      "path": "analysis/world_model/comparison.json",
+      "source": "logdir/world_model_injection_comparison_20261021/comparison.json",
+      "bytes": 39103,
+      "sha256": "e459e0228d7164a688d9870789eda143a0903d967453e2e04ab0afc8e4881e76"
+    },
+    {
+      "path": "analysis/world_model/REPORT.md",
+      "source": "logdir/world_model_injection_comparison_20261021/REPORT.md",
+      "bytes": 6528,
+      "sha256": "1d8f500390922ddcb09796372600a3653e421824cbade9d6341a9c473abda7e9"
+    },
+    {
+      "path": "analysis/world_model/baseline/summary.json",
+      "source": "logdir/world_model_injection_comparison_20261021/baseline/summary.json",
+      "bytes": 1532,
+      "sha256": "fa0e85898d93c8a5a0b113564ec61696ea95f3c8d4bf9ba176786f7b9bc3e2ff"
+    },
+    {
+      "path": "analysis/world_model/baseline/provenance.json",
+      "source": "logdir/world_model_injection_comparison_20261021/baseline/provenance.json",
+      "bytes": 934,
+      "sha256": "d408094a6f0881d95fbd3ad1c5639e430284e0d549f3b63b8f9aed8d92abaa3a"
+    },
+    {
+      "path": "analysis/world_model/09_deep/summary.json",
+      "source": "logdir/world_model_injection_comparison_20261021/09_deep/summary.json",
+      "bytes": 2854,
+      "sha256": "b7b05072d49ede7948550cbc5e4ea2d846aac971ac969d0d998734a51cdc4fee"
+    },
+    {
+      "path": "analysis/world_model/09_deep/provenance.json",
+      "source": "logdir/world_model_injection_comparison_20261021/09_deep/provenance.json",
+      "bytes": 950,
+      "sha256": "861b31115cbe30abbfd0143b38b167027117b15914fc3cc8782b7887389c5e18"
+    },
+    {
+      "path": "analysis/world_model/03_recurrent/summary.json",
+      "source": "logdir/world_model_injection_comparison_20261021/03_recurrent/summary.json",
+      "bytes": 2872,
+      "sha256": "c9d0cc0fae54ab59f7c9d8398537ff7f290fca1f957794f905aa08fd1e68291a"
+    },
+    {
+      "path": "analysis/world_model/03_recurrent/provenance.json",
+      "source": "logdir/world_model_injection_comparison_20261021/03_recurrent/provenance.json",
+      "bytes": 944,
+      "sha256": "8c715e692d308d4cbc074c15e99eeacffd39a54c6c3166b6c4debde6f909d08b"
+    },
+    {
+      "path": "analysis/world_model/11_shallow/summary.json",
+      "source": "logdir/world_model_injection_comparison_20261021/11_shallow/summary.json",
+      "bytes": 2866,
+      "sha256": "36e2ecc4495eae63f87005183d2e0cb89980e8e929f60c55701df3157231a5bb"
+    },
+    {
+      "path": "analysis/world_model/11_shallow/provenance.json",
+      "source": "logdir/world_model_injection_comparison_20261021/11_shallow/provenance.json",
+      "bytes": 967,
+      "sha256": "0984cd6a9b7a1bccefb9307d28a4803892a14454c235b0b736e10cde8c6d093f"
+    },
+    {
+      "path": "analysis/world_model/10_joint/summary.json",
+      "source": "logdir/world_model_injection_comparison_20261021/10_joint/summary.json",
+      "bytes": 2833,
+      "sha256": "fb5bc0686bd46bed94fcb6f71c8fdc482731a4bbb74ef53733d9427407f4ed8b"
+    },
+    {
+      "path": "analysis/world_model/10_joint/provenance.json",
+      "source": "logdir/world_model_injection_comparison_20261021/10_joint/provenance.json",
+      "bytes": 976,
+      "sha256": "735a8fd69298cac700bbc1f405ec6f53098e643bd48dee01fdb3411d7ba6c3ec"
+    },
+    {
+      "path": "analysis/context_exchange/results.json",
+      "source": "logdir/context_exchange_prediction_20261021/results.json",
+      "bytes": 83991,
+      "sha256": "a32c0c9b736099c270a5282d13f3233c6f6a0b885635c250f55f92cf9078f0ff"
+    },
+    {
+      "path": "analysis/context_exchange/condition_results.json",
+      "source": "logdir/context_exchange_prediction_20261021/condition_results.json",
+      "bytes": 99286,
+      "sha256": "2f75ae0eaa3637ad8a46009e3d7cdbecbdde69ba34ce00146809504ca74393c9"
+    },
+    {
+      "path": "analysis/context_exchange/CONDITION_REPORT.md",
+      "source": "logdir/context_exchange_prediction_20261021/CONDITION_REPORT.md",
+      "bytes": 3826,
+      "sha256": "3bfdf138070b628cbfdc834903421f49ed43cd62eeddf713f25c2e760582e1e9"
+    },
+    {
+      "path": "analysis/context_exchange/REPORT.md",
+      "source": "logdir/context_exchange_prediction_20261021/REPORT.md",
+      "bytes": 8898,
+      "sha256": "fb514e0829bca7b7104dcd9ff05a34b005818d167eb801b0907bd1a0d1ca62b0"
+    },
+    {
+      "path": "analysis/driving_stability/results.json",
+      "source": "logdir/driving_stability_20261021/results.json",
+      "bytes": 80059,
+      "sha256": "a20eaecbba0eb4e1f3d960125142313cafb067e39b2978bb2d727975163a1611"
+    },
+    {
+      "path": "analysis/driving_stability/stability_overview.svg",
+      "source": "logdir/driving_stability_20261021/stability_overview.svg",
+      "bytes": 220814,
+      "sha256": "c412473282cb10400aba340115126b6dae356023e241f5fbe56f3bfca669f447"
+    },
+    {
+      "path": "analysis/driving_stability/stability_overview.png",
+      "source": "logdir/driving_stability_20261021/stability_overview.png",
+      "bytes": 281228,
+      "sha256": "1c6d9d7c7c08b34993ac687f0f7fa0aa77b8981b215f9eed49d1a21eb47d3b3e"
+    },
+    {
+      "path": "analysis/driving_stability/REPORT.md",
+      "source": "logdir/driving_stability_20261021/REPORT.md",
+      "bytes": 10712,
+      "sha256": "89579281609e7f653037616378e07cc185d7063e9324c99a774bdff688e1ba62"
+    },
+    {
+      "path": "analysis/driving_stability/stability_overview.pdf",
+      "source": "logdir/driving_stability_20261021/stability_overview.pdf",
+      "bytes": 51807,
+      "sha256": "b9c19d0dfeda299e0a426440264ce73b6f66366f251ae2fd3e8d4273bb001dc4"
+    },
+    {
+      "path": "analysis/driving_stability/baseline/episodes.jsonl",
+      "source": "logdir/driving_stability_20261021/baseline/episodes.jsonl",
+      "bytes": 35999,
+      "sha256": "b291350cf354fc40de5fea8ce609ad772bc2e109417eded6c0bca0282ab4baeb"
+    },
+    {
+      "path": "analysis/driving_stability/baseline/provenance.json",
+      "source": "logdir/driving_stability_20261021/baseline/provenance.json",
+      "bytes": 669,
+      "sha256": "048a2dbb0fef548d5f0a99f00229df44a8ec36ed822739d79876cc380220ad85"
+    },
+    {
+      "path": "analysis/driving_stability/09_deep/episodes.jsonl",
+      "source": "logdir/driving_stability_20261021/09_deep/episodes.jsonl",
+      "bytes": 36005,
+      "sha256": "20e851d81c9ddfd5a51919843364bcd033e67519896eed50d1717f8653b11082"
+    },
+    {
+      "path": "analysis/driving_stability/09_deep/provenance.json",
+      "source": "logdir/driving_stability_20261021/09_deep/provenance.json",
+      "bytes": 685,
+      "sha256": "a99371f1dc4f1844bf7bc4fc30a3a1ae49e26e7d2dccf29140e7fb442157e4e0"
+    },
+    {
+      "path": "analysis/driving_stability/11_shallow/episodes.jsonl",
+      "source": "logdir/driving_stability_20261021/11_shallow/episodes.jsonl",
+      "bytes": 36002,
+      "sha256": "026bf0221cb75b29bc87f14369700db0994c0c9283caa02e593db4505ff2d5d5"
+    },
+    {
+      "path": "analysis/driving_stability/11_shallow/provenance.json",
+      "source": "logdir/driving_stability_20261021/11_shallow/provenance.json",
+      "bytes": 702,
+      "sha256": "130561e5a3bc4fca28467c464c9a1406e5d39c44b9534ef498b9bdb009fdc905"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/selected_episode.json",
+      "source": "logdir/driving_stability_20261021/full_episode/selected_episode.json",
+      "bytes": 41250,
+      "sha256": "f1b6699a91b4273aaf739e7b7f628a8920aa498ae3fcfd97ab638914bc02323c"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/baseline_vs_11_full_xl_10427.svg",
+      "source": "logdir/driving_stability_20261021/full_episode/baseline_vs_11_full_xl_10427.svg",
+      "bytes": 92956,
+      "sha256": "6a0b11c7b0a0fce596bc46dabd09bc34c587f0633c69131a2ceeeb6339fac53d"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/baseline_vs_11_full_new_maps_10034.pdf",
+      "source": "logdir/driving_stability_20261021/full_episode/baseline_vs_11_full_new_maps_10034.pdf",
+      "bytes": 39351,
+      "sha256": "e01e6caa4c0e78cbdde6d25e5a1516101814862a961e9994f050268964dcff79"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/README.md",
+      "source": "logdir/driving_stability_20261021/full_episode/README.md",
+      "bytes": 1369,
+      "sha256": "8de1f60adc3d3b5be9ea1fb86abec004cbd0da085f93d97ca3b030545f815ffa"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/baseline_vs_11_full_xl_10427.pdf",
+      "source": "logdir/driving_stability_20261021/full_episode/baseline_vs_11_full_xl_10427.pdf",
+      "bytes": 37145,
+      "sha256": "a783f51ec62105016caad71022d0ba512171957e4d197707742ef12c05b95958"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/trajectories_new_maps_10034.svg",
+      "source": "logdir/driving_stability_20261021/full_episode/trajectories_new_maps_10034.svg",
+      "bytes": 54312,
+      "sha256": "58b313c6a2c9e12b7f0c5341ac3f8da1b889164f40eb2a8d1c94df1ababaf09c"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/baseline_vs_11_full_new_maps_10034.svg",
+      "source": "logdir/driving_stability_20261021/full_episode/baseline_vs_11_full_new_maps_10034.svg",
+      "bytes": 98677,
+      "sha256": "4f4286729bae505a71105f898231202ed3c251faf84cf64471a334997eb22ca8"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/controls_new_maps_10034.svg",
+      "source": "logdir/driving_stability_20261021/full_episode/controls_new_maps_10034.svg",
+      "bytes": 30795,
+      "sha256": "0ed412861398da5615590a7a294fe8903e2e62f787b43df6f81c5c813e098154"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/baseline_vs_11_full_new_maps_10034.png",
+      "source": "logdir/driving_stability_20261021/full_episode/baseline_vs_11_full_new_maps_10034.png",
+      "bytes": 418361,
+      "sha256": "396a61bf960c14acfd9cedb04daf940ded433d8ba8b4ee87cb99495b44ec7095"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/baseline_vs_11_full_xl_10427.png",
+      "source": "logdir/driving_stability_20261021/full_episode/baseline_vs_11_full_xl_10427.png",
+      "bytes": 335828,
+      "sha256": "79289ef9edc62534f3606bf4f05a4a46cdc41e1d808e00449b873bdb9f9b3396"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/trajectories_new_maps_10034.png",
+      "source": "logdir/driving_stability_20261021/full_episode/trajectories_new_maps_10034.png",
+      "bytes": 155598,
+      "sha256": "88b6fd2d379e9afae1668de0dc081c51bba3e023c43d9965aca905090cbd1784"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/trajectories_new_maps_10034.pdf",
+      "source": "logdir/driving_stability_20261021/full_episode/trajectories_new_maps_10034.pdf",
+      "bytes": 21917,
+      "sha256": "23ed52a86f344cefd7f84699c9576982610b685379635206ec691814d162380a"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/controls_new_maps_10034.pdf",
+      "source": "logdir/driving_stability_20261021/full_episode/controls_new_maps_10034.pdf",
+      "bytes": 17786,
+      "sha256": "156d6301ea76daa092839fa9502440268ef4f8e882b033725b93890fdf58d997"
+    },
+    {
+      "path": "analysis/driving_stability/full_episode/controls_new_maps_10034.png",
+      "source": "logdir/driving_stability_20261021/full_episode/controls_new_maps_10034.png",
+      "bytes": 262631,
+      "sha256": "c895fd28e396fba550bb5f5a9d239c83773688bb4acfa3051e468a63b58ab1a7"
+    },
+    {
+      "path": "analysis/training_curves_ema099/README.md",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/README.md",
+      "bytes": 452,
+      "sha256": "3f066a89e3103f42cb57aea2a7f34db6e54cfa96cd606ef937d57f07098874a6"
+    },
+    {
+      "path": "analysis/training_curves_ema099/training_curves_01_vs_11.svg",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/training_curves_01_vs_11.svg",
+      "bytes": 38769,
+      "sha256": "b185ca98e768d1298b7ca969dd8da61fe846fceae95c16e0d49bb801debb1f52"
+    },
+    {
+      "path": "analysis/training_curves_ema099/tensorboard_check.json",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/tensorboard_check.json",
+      "bytes": 991,
+      "sha256": "af73da045142013bd96f4abdd54a37a5e838ecc18804fd88c3529a59339cc8b1"
+    },
+    {
+      "path": "analysis/training_curves_ema099/training_curves_01_vs_11.png",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/training_curves_01_vs_11.png",
+      "bytes": 301024,
+      "sha256": "11f7e1bd8a4a4fcd0e7429ddd79c377235bd75f306a8dd97e1a635f5bf097027"
+    },
+    {
+      "path": "analysis/training_curves_ema099/source_data.csv",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/source_data.csv",
+      "bytes": 36772,
+      "sha256": "076587a10910f7d73f4f3f384540cffd3dad7ea51a33fbc1498177ddca7195fc"
+    },
+    {
+      "path": "analysis/training_curves_ema099/provenance.json",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/provenance.json",
+      "bytes": 722,
+      "sha256": "f8aef2f37da24ad21215e335d4713c55ed5ec801521962e8eb9e169c373f3ab4"
+    },
+    {
+      "path": "analysis/training_curves_ema099/training_curves_01_vs_11.pdf",
+      "source": "logdir/training_curves_01_vs_11_20261021/tensorboard_ema099/training_curves_01_vs_11.pdf",
+      "bytes": 18305,
+      "sha256": "9c8a39491e02440c39bdbdf6ab5f75f3af17acc7380bbbaebd0cc7c81ff50b4a"
+    },
+    {
+      "path": "T_validation/training/status.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/training/status.json",
+      "bytes": 10201,
+      "sha256": "a0e5f1e5aa7d50c5d4367bbc62ff5ff0bb2bb21ee351cd69e2dfe729d094bca8"
+    },
+    {
+      "path": "T_validation/validation.json",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/validation.json",
+      "bytes": 360,
+      "sha256": "8155987b2faa8df971b0813201b15fb36498d73ea0df7b41f8223a1021a1ef41"
+    },
+    {
+      "path": "T_validation/unit_tests.log",
+      "source": "logdir/tintersection_mass_friction_500k_20261021/unit_tests.log",
+      "bytes": 9263,
+      "sha256": "a201366f36f5d52cd658de3c01ce53f1efed0d316f578bb6884d4dcc2a02c3bb"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/dreamerv3/best.pt",
+  "checkpoint_sha256": "9c49ea7f6024fbbd69ef484d30162e013430888c95c7a4bdc5f031b918cf98cf",
+  "checkpoint_step": 500003,
+  "source_root": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/source",
+  "episodes_requested": 100,
+  "seed_start": 10020,
+  "seed_end": 10119,
+  "inference_seed_offset": 12345,
+  "context_enabled": false,
+  "evaluation": "new maps; training chassis/scale distribution; frozen weights",
+  "policy": "actor mode; stochastic RSSM posterior with fixed per-episode RNG seed"
+}

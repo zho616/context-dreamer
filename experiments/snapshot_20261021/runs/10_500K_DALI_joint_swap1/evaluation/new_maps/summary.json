@@ -1,0 +1,103 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/context_swap_dali_joint_500k_20261020_run1/training/r2dreamer_dali_deep_joint/best.pt",
+  "checkpoint_sha256": "cb7c3b25e24aeff1db91bed7a4e97dc7e479554906ceea257171a47c43acdbfc",
+  "checkpoint_step": 340002,
+  "source_root": "/home/server/projects/r2dreamer/logdir/context_swap_dali_joint_500k_20261020_run1/training/source",
+  "episodes_requested": 100,
+  "seed_start": 10020,
+  "seed_end": 10119,
+  "inference_seed_offset": 12345,
+  "context_enabled": true,
+  "context_injection": "dali_deep_joint",
+  "context_actor_critic": true,
+  "evaluation": "new maps; training chassis/scale distribution; frozen weights",
+  "eval_models": [
+    "default",
+    "m",
+    "l"
+  ],
+  "eval_mass_scales": [
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2
+  ],
+  "eval_steering_scales": [
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2
+  ],
+  "policy": "actor mode; stochastic RSSM posterior with fixed per-episode RNG seed",
+  "status": "completed",
+  "completed_episodes": 100,
+  "elapsed_seconds": 180.21165542199742,
+  "summary": {
+    "success": 0.8,
+    "crash": 0.14,
+    "out_of_road": 0.02,
+    "timeout": 0.04,
+    "reward": 133.30545440183866,
+    "route_completion": 0.8615337329421432,
+    "steps": 554.14,
+    "mean_speed_km_h": 8.26361064469145,
+    "episodes": 100,
+    "success_count": 80,
+    "success_wilson95": [
+      0.7111708344068411,
+      0.8666330666689676
+    ]
+  },
+  "per_model": {
+    "default": {
+      "success": 0.85,
+      "crash": 0.15,
+      "out_of_road": 0.0,
+      "timeout": 0.0,
+      "reward": 136.1230057866913,
+      "route_completion": 0.8741534218561056,
+      "steps": 512.1,
+      "mean_speed_km_h": 8.971039296758565,
+      "episodes": 40,
+      "success_count": 34,
+      "success_wilson95": [
+        0.709276756335103,
+        0.9293881228267964
+      ]
+    },
+    "l": {
+      "success": 0.8571428571428571,
+      "crash": 0.09523809523809523,
+      "out_of_road": 0.0,
+      "timeout": 0.047619047619047616,
+      "reward": 142.71534119543875,
+      "route_completion": 0.9103032952899357,
+      "steps": 612.7142857142857,
+      "mean_speed_km_h": 7.857768539934453,
+      "episodes": 21,
+      "success_count": 18,
+      "success_wilson95": [
+        0.6536393971937906,
+        0.9501898750027473
+      ]
+    },
+    "m": {
+      "success": 0.717948717948718,
+      "crash": 0.15384615384615385,
+      "out_of_road": 0.05128205128205128,
+      "timeout": 0.07692307692307693,
+      "reward": 125.34879599005119,
+      "route_completion": 0.8223299286892684,
+      "steps": 565.7179487179487,
+      "mean_speed_km_h": 7.756573160517399,
+      "episodes": 39,
+      "success_count": 28,
+      "success_wilson95": [
+        0.5622468051697918,
+        0.8345650791115233
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "checkpoint": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/r2dreamer/best.pt",
+  "checkpoint_sha256": "2e9997594ef57e1826a47478ba8abb1840dbde02d616cdf1861589b840dfc690",
+  "step": 440007,
+  "source": "/home/server/projects/r2dreamer/logdir/chassis_baselines_500k_20261015_020330/source",
+  "collection_script_sha256": "280c96d7c122087971d038fb65332d7dba80a350355a9b16222dab74103b1627",
+  "episodes_per_split": 20,
+  "inference_seed_offset": 12345,
+  "policy": "actor mode, stochastic RSSM posterior, fixed per-episode seed; float32 high matmul precision",
+  "splits": {
+    "new_maps": 10020,
+    "s": 10320,
+    "xl": 10420
+  }
+}

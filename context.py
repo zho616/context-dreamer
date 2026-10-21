@@ -115,7 +115,71 @@ class ResidualDynamics(nn.Module):
             return self.delta(F.silu(self.hidden2(F.silu(self.hidden1(x))))) * self.scale
 
 
-def auxiliary_loss(predictor, data, context):
+SWAP_PROFILE_KEYS = ("log_chassis_model_id", "log_chassis_mass", "log_chassis_max_steering",
+                     "log_chassis_wheel_friction")
+
+
+@torch.compiler.disable
+def context_swap_loss(predictor, data, context):
+    """One-step exchange across episodes with identical physical profiles.
+
+    Metadata selects donors only. Replay's `episode` is a worker stream ID,
+    so use explicit (worker, reset-counter) IDs instead. Full-history donors
+    retain gradients. Every anchor is a recipient (symmetric in expectation).
+    """
+    states = data["ctx_ego_state"].float()
+    b, t, d = states.shape
+    if t < 2:
+        raise ValueError("Context exchange needs at least two timesteps")
+    flag = lambda key: data[key].bool().reshape(b, t)
+    event = flag("is_last") | flag("is_terminal") | flag("ctx_collision")
+    finite = torch.isfinite(states).all(-1) & torch.isfinite(context).all(-1)
+    finite &= torch.isfinite(data["ctx_history"]).all(dim=(-1, -2))
+    usable = data["ctx_mask"].bool().all(-1) & finite & ~event & ~flag("is_first")
+    uid = data["ctx_episode_uid"].reshape(b, t, 2)
+    profiles = torch.stack([data[key].reshape(b, t) for key in SWAP_PROFILE_KEYS], -1)
+    usable &= torch.isfinite(profiles).all(-1)
+    flatten = lambda x: x[:, :-1].reshape(-1, *x.shape[2:])
+    profile, episode = flatten(profiles), flatten(uid)
+    same = (profile[:, None] == profile[None, :]).all(-1)
+    different_episode = (episode[:, None] != episode[None, :]).any(-1)
+    candidates = same & different_episode & usable[:, :-1].reshape(-1)[None, :]
+    scores = torch.rand(candidates.shape, device=states.device)
+    donors = scores.masked_fill(~candidates, -1).argmax(-1)
+    actions = data["ctx_prev_action"][:, 1:].float()
+    valid = usable[:, :-1] & ~event[:, 1:] & ~flag("is_first")[:, 1:]
+    valid &= (uid[:, :-1] == uid[:, 1:]).all(-1)
+    valid &= (profiles[:, :-1] == profiles[:, 1:]).all(-1)
+    valid &= torch.isfinite(states[:, 1:]).all(-1) & torch.isfinite(actions).all(-1)
+    eligible = valid.reshape(-1)
+    paired = eligible & candidates.any(-1)
+    count = paired.sum()
+    c = flatten(context)
+    x, a, y = flatten(states), actions.reshape(-1, ACTION_DIM).clamp(-1, 1), states[:, 1:].reshape(-1, d)
+    x, a, y = [torch.where(paired[:, None], value, 0.) for value in (x, a, y)]
+    scale = states.new_tensor(state_scale(d))
+
+    def error(ctx):
+        ctx = torch.where(paired[:, None], ctx, 0.)
+        prediction = predict_next_state(predictor, ctx, x.detach(), a)
+        errors = ((prediction - y).abs() / scale).sum(-1)
+        return torch.where(paired, errors, 0.).sum() / count.clamp_min(1)
+
+    loss = error(c[donors])
+    with torch.no_grad():
+        own, zero = error(c), error(torch.zeros_like(c))
+    metrics = {
+        "context/swap_pairs": count,
+        "context/swap_eligible": eligible.sum(),
+        "context/swap_coverage": count.float() / eligible.sum().clamp_min(1),
+        "context/swap_own_l1": own,
+        "context/swap_zero_l1": zero,
+        "context/swap_gap": loss.detach() - own,
+    }
+    return loss, metrics
+
+
+def auxiliary_loss(predictor, data, context, return_metrics=False):
     """Fixed anchor context, five steps, step-wise detached state, normalized L1.
 
     Unlike the legacy JAX replay, ctx_prev_action at target t+1 contains a_t.
@@ -133,6 +197,9 @@ def auxiliary_loss(predictor, data, context):
     ctx = torch.where(alive[..., None], context, 0.)
     scale = states.new_tensor(state_scale(states.shape[-1]))
     total = states.new_zeros(())
+    physical_total = states.new_zeros(states.shape[-1])
+    first_total = states.new_zeros(states.shape[-1])
+    first_count = torch.zeros((), device=states.device, dtype=torch.long)
     count = torch.zeros((), device=states.device, dtype=torch.long)
     for horizon in range(1, min(5, length - 1) + 1):
         support = length - horizon
@@ -145,9 +212,22 @@ def auxiliary_loss(predictor, data, context):
         predicted = predict_next_state(predictor, ctx[:, :support], x, a)
         target = torch.where(alive[..., None], target, 0.)
         error = ((predicted - target).abs() / scale).sum(-1)
+        if return_metrics:
+            physical = torch.where(alive[..., None], (predicted.detach() - target).abs(), 0.).sum((0, 1))
+            physical_total = physical_total + physical
+            if horizon == 1:
+                first_total, first_count = physical, alive.sum()
         total = total + torch.where(alive, error, 0.).sum()
         count = count + alive.sum()
-    return total / count.clamp_min(1), count
+    loss = total / count.clamp_min(1)
+    if return_metrics:
+        names = ("accel_mps2", "yaw_rate_radps", "speed_mps", "wheel_angle_rad")[:states.shape[-1]]
+        metrics = {}
+        for i, name in enumerate(names):
+            metrics[f"context/mae_{name}"] = physical_total[i] / count.clamp_min(1)
+            metrics[f"context/one_step_mae_{name}"] = first_total[i] / first_count.clamp_min(1)
+        return loss, count, metrics
+    return loss, count
 
 
 @torch.no_grad()
