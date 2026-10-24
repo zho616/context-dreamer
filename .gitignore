@@ -1,6 +1,11 @@
 # Logs / artifacts
 logdir/
 deployment_bundle/
+output/
+iv_output/
+paper/
+datasets/
+data/
 .env
 .env.*
 !.env.example

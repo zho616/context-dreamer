@@ -31,6 +31,8 @@ def main():
     parser.add_argument('--episodes',type=int,default=100)
     parser.add_argument('--seed-start',type=int,default=10020)
     parser.add_argument('--device',default='cuda:0')
+    parser.add_argument('--scenario-dir',type=pathlib.Path,help='Held-out nuPlan ScenarioNet split')
+    parser.add_argument('--inference-seed-offset',type=int,default=12345)
     parser.add_argument('--eval-models',nargs='+',choices=('s','default','m','l','xl'),
                         help='Override evaluation chassis pool without changing training config')
     args=parser.parse_args()
@@ -59,6 +61,14 @@ def main():
     config.env.eval_num_scenarios=args.episodes
     config.env.eval_episode_num=args.episodes
     config.env.eval_env_num=1
+    nuplan=config.env.task=='metadrive_nuplan'
+    if args.scenario_dir:
+        if not nuplan:parser.error('--scenario-dir requires a nuPlan checkpoint')
+        config.env.scenario_eval_dir=str(args.scenario_dir.resolve())
+    if nuplan:
+        if args.seed_start!=0:parser.error('Pass --seed-start 0 for nuPlan split indices')
+        from envs.nuplan import NuPlanDrive
+        MetaDrive=NuPlanDrive
     if args.eval_models:
         if not config.env.chassis.enabled:
             parser.error('--eval-models requires a checkpoint trained with chassis randomization')
@@ -71,10 +81,14 @@ def main():
     provenance=dict(checkpoint=str(checkpoint),checkpoint_sha256=fingerprint,
         checkpoint_step=payload.get('step'),source_root=str(source),episodes_requested=args.episodes,
         seed_start=args.seed_start,seed_end=args.seed_start+args.episodes-1,
-        inference_seed_offset=12345,context_enabled=bool(config.model.context.enabled),
+        inference_seed_offset=args.inference_seed_offset,context_enabled=bool(config.model.context.enabled),
         context_injection=str(config.model.context.injection),
         context_actor_critic=bool(getattr(config.model.context, 'actor_critic', False)),
-        evaluation=('new maps; overridden chassis pool; training scale distribution; frozen weights'
+        scenario_dir=str(config.env.scenario_eval_dir)if nuplan else None,
+        evaluation=('held-out nuPlan scenarios; overridden chassis pool; training scale distribution; frozen weights'
+                    if nuplan and args.eval_models else
+                    'held-out nuPlan scenarios; training chassis/scale distribution; frozen weights'if nuplan else
+                    'new maps; overridden chassis pool; training scale distribution; frozen weights'
                     if args.eval_models else 'new maps; training chassis/scale distribution; frozen weights'),
         eval_models=list(config.env.chassis.eval_models) if config.env.chassis.enabled else None,
         eval_mass_scales=list(config.env.chassis.eval_mass_scales) if config.env.chassis.enabled else None,
@@ -104,7 +118,7 @@ def main():
         save_progress('running')
         with (output/'episodes.jsonl').open('w',buffering=1) as trace, torch.inference_mode():
             for seed in range(args.seed_start,args.seed_start+args.episodes):
-                torch.manual_seed(seed+12345); np.random.seed(seed+12345)
+                torch.manual_seed(seed+args.inference_seed_offset); np.random.seed(seed+args.inference_seed_offset)
                 obs=env.reset(seed=seed)
                 chassis=env.chassis_parameters or dict(model=env._env.vehicle.config["vehicle_model"])
                 state=model.get_initial_state(1)

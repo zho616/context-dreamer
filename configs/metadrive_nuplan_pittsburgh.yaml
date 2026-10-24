@@ -1,0 +1,17 @@
+defaults:
+  - metadrive_nuplan
+  - _self_
+
+logdir: logdir/metadrive_nuplan_pittsburgh/${now:%Y-%m-%d}/${now:%H-%M-%S}
+env:
+  scenario_train_dir: ${oc.env:NUPLAN_DATA_ROOT,datasets/nuplan/scenarionet_pittsburgh_8000}/train
+  scenario_eval_dir: ${oc.env:NUPLAN_DATA_ROOT,datasets/nuplan/scenarionet_pittsburgh_8000}/val
+  scenario_test_dir: ${oc.env:NUPLAN_DATA_ROOT,datasets/nuplan/scenarionet_pittsburgh_8000}/test
+  num_scenarios: 8000
+  eval_num_scenarios: 100
+  eval_episode_num: 100
+
+model:
+  context:
+    enabled: false
+    swap_weight: 0.0

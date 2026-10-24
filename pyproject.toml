@@ -22,6 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+sb3 = ["stable-baselines3==2.9.0"]
 dmc = ["dm_control==1.0.28", "mujoco==3.3.0"]
 atari = ["ale_py==0.11.2", "opencv-python==4.7.0.72"]
 crafter = ["crafter==1.8.0"]

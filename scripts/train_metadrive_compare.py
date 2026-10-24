@@ -36,6 +36,8 @@ def main():
     parser.add_argument("--context-only", action="store_true", help="Train only context variants using recurrent concatenation")
     parser.add_argument("--context-swap-weight", type=float, default=0.0,
                         help="One-step same-chassis cross-episode exchange loss weight")
+    parser.add_argument("--context-wm-grad-scale", type=float, default=0.0,
+                        help="Selected WM gradient multiplier into the shallow context encoder only")
     parser.add_argument("--map-block", choices=("O", "T"), default="O",
                         help="Native MetaDrive junction block; defaults to the existing roundabout")
     parser.add_argument("--include-baseline", action="store_true",
@@ -55,6 +57,10 @@ def main():
         parser.error("--steps must be positive")
     if not 0 <= args.context_swap_weight < float("inf"):
         parser.error("--context-swap-weight must be finite and nonnegative")
+    if not 0 <= args.context_wm_grad_scale < float("inf"):
+        parser.error("--context-wm-grad-scale must be finite and nonnegative")
+    if args.context_wm_grad_scale and (args.methods != ["r2dreamer"] or args.context_variants != ["dali_shallow"]):
+        parser.error("WM context gradients require --methods r2dreamer --context-variants dali_shallow")
     if args.context_swap_weight and not ((args.context_only or args.context_variants) and args.chassis_randomization):
         parser.error("Context exchange requires a context variant and --chassis-randomization")
     if args.context_only and (args.context_comparison or args.ablations):
@@ -127,6 +133,8 @@ def main():
             variant_overrides[name] = ["model.context.enabled=true",
                 f"model.context.injection={'dali_shallow' if shallow else 'dali_deep_joint' if joint else 'dali_deep' if deep else 'adarms_deter' if adarms else 'recurrent_concat'}",
                 f"model.context.actor_critic={str(not (adarms or shallow)).lower()}"]
+    if args.context_wm_grad_scale:
+        variant_overrides["r2dreamer_dali_shallow"].append(f"model.context.wm_grad_scale={args.context_wm_grad_scale}")
     lateral = 0.2 if args.reward_mode == "additive" else 0.0
     common = [f"env.steps={args.steps}", "env.train_ratio=512", "buffer.max_size=500000",
               "buffer.storage_device=cpu", "env.env_num=8", "env.eval_episode_num=20", "env.eval_env_num=2",

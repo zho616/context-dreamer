@@ -97,9 +97,12 @@ def make_env(config, id, evaluation=False):
         env = crafter.Crafter(task, config.size, seed=config.seed + id)
         env = wrappers.OneHotAction(env)
     elif suite == "metadrive":
-        from envs.metadrive import MetaDrive
-
-        env = MetaDrive(config, id, evaluation=evaluation)
+        if task == "nuplan":
+            from envs.nuplan import NuPlanDrive
+            env = NuPlanDrive(config, id, evaluation=evaluation)
+        else:
+            from envs.metadrive import MetaDrive
+            env = MetaDrive(config, id, evaluation=evaluation)
     elif suite == "metaworld":
         import envs.metaworld as metaworld
 

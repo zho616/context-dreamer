@@ -91,9 +91,12 @@ class DaliJointDeter(nn.Module):
 
 
 class ContextRSSM(RSSM):
-    def __init__(self, config, embed_size, act_dim, injection="recurrent_concat"):
+    def __init__(self, config, embed_size, act_dim, injection="recurrent_concat", context_input_grad=False):
         super().__init__(config, embed_size, act_dim)
         self.injection = injection
+        self.context_input_grad = bool(context_input_grad)
+        if self.context_input_grad and injection != "dali_shallow":
+            raise ValueError("Selective context gradients currently support dali_shallow only")
         if injection in ("recurrent_concat", "dali_deep"):
             first = self._deter_net._dyn_in1[0]
             layer = nn.Linear(first.in_features + 8, first.out_features)
@@ -142,7 +145,7 @@ class ContextRSSM(RSSM):
         stoch = torch.where(reset[:, None, None], 0., stoch)
         deter = torch.where(reset[:, None], 0., deter)
         prev_action = torch.where(reset[:, None], 0., prev_action)
-        context = torch.where(reset[:, None], 0., context.detach())
+        context = torch.where(reset[:, None], 0., context if self.context_input_grad else context.detach())
         deter = self._transition(stoch, deter, prev_action, context)
         inputs = (deter, embed)
         if self.injection in ("prior_posterior", "dali_shallow"):

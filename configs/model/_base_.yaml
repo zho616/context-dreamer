@@ -188,3 +188,4 @@ context:
   rollout: dynamic
   aux_weight: 1.0
   swap_weight: 0.0 # Same chassis, different episode, one-step context exchange.
+  wm_grad_scale: 0.0 # Opt-in R2 shallow: only dyn/rep/barlow/rew/con update the context encoder.

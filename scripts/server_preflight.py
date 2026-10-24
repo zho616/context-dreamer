@@ -14,6 +14,7 @@ def main():
     args = parser.parse_args()
     import torch
     import metadrive
+    from metadrive.envs.metadrive_env import MetaDriveEnv  # Initialize vehicle imports first.
     from metadrive.component.vehicle.vehicle_type import vehicle_type
     from metadrive.component.pgblock.t_intersection import TInterSection
 

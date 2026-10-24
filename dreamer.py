@@ -33,6 +33,11 @@ class Dreamer(nn.Module):
         context_config = getattr(config, "context", None)
         self.context_enabled = bool(context_config and context_config.enabled)
         self.context_shallow = self.context_enabled and context_config.injection == "dali_shallow"
+        self.context_wm_grad_scale = float(getattr(context_config, "wm_grad_scale", 0.0)) if context_config else 0.0
+        if not math.isfinite(self.context_wm_grad_scale) or self.context_wm_grad_scale < 0:
+            raise ValueError("context.wm_grad_scale must be finite and nonnegative")
+        if self.context_wm_grad_scale and not (self.context_shallow and self.rep_loss == "r2dreamer"):
+            raise ValueError("context.wm_grad_scale requires R2Dreamer dali_shallow")
         self.context_deep = self.context_enabled and context_config.injection in ("dali_deep", "dali_deep_joint")
         self.context_actor_critic = self.context_enabled and not self.context_shallow and (
             self.context_deep or bool(getattr(context_config, "actor_critic", False)))
@@ -45,6 +50,7 @@ class Dreamer(nn.Module):
             if context_config.injection not in ("recurrent_concat", "prior_posterior", "adarms_deter", "dali_deep", "dali_deep_joint", "dali_shallow"):
                 raise ValueError("Unknown context injection")
             rssm_kwargs["injection"] = str(context_config.injection)
+            rssm_kwargs["context_input_grad"] = self.context_wm_grad_scale > 0
             self.context_rollout = str(context_config.rollout)
             if self.context_rollout not in ("dynamic", "fixed", "zero", "shuffled"):
                 raise ValueError("Unknown context rollout mode")
@@ -436,7 +442,10 @@ class Dreamer(nn.Module):
                 losses["context_swap"], swap_metrics = context_swap_loss(self.context_dynamics, data, context)
                 metrics.update(swap_metrics)
             metrics["context/rms"] = context.detach().square().mean().sqrt()
-            extra = (context.detach(),)
+            # A separate leaf prevents auxiliary losses from reaching WM parameters
+            # and repval from reaching E. Only the selected WM gradient is routed below.
+            wm_context = context.detach().requires_grad_(self.context_wm_grad_scale > 0)
+            extra = (wm_context,)
         post_stoch, post_deter, post_logit = self.rssm.observe(embed, data["action"], initial, data["is_first"], *extra)
         # (B, T, S, K)
         _, prior_logit = self.rssm.prior(post_deter, *extra)
@@ -602,11 +611,31 @@ class Dreamer(nn.Module):
         metrics.update(tools.tensorstats(slow_value, "slow_value_replay"))
 
         total_loss = sum([v * self._loss_scales[k] for k, v in losses.items()])
+        if self.context_wm_grad_scale:
+            surrogate, context_metrics = self._context_wm_surrogate(losses, context, wm_context)
+            total_loss = total_loss + surrogate
+            metrics.update(context_metrics)
         self._scaler.scale(total_loss).backward()
 
         metrics.update({f"loss/{name}": loss for name, loss in losses.items()})
         metrics.update({"opt/loss": total_loss})
         return (post_stoch, post_deter), metrics
+
+    CONTEXT_WM_LOSSES = ("dyn", "rep", "barlow", "rew", "con")
+
+    def _context_wm_surrogate(self, losses, context, wm_context):
+        """Route selected first-order WM gradients to E, preserving all WM gradients.
+
+        The zero-valued surrogate has no connection to WM or auxiliary predictor
+        parameters. Scaling before the VJP preserves GradScaler's AMP protection.
+        repval/policy/value are intentionally absent from this whitelist.
+        """
+        objective = sum(losses[k] * self._loss_scales[k] for k in self.CONTEXT_WM_LOSSES)
+        gradient, = torch.autograd.grad(self._scaler.scale(objective), wm_context, retain_graph=True)
+        gradient = gradient.detach() / self._scaler.get_scale()
+        surrogate = self.context_wm_grad_scale * ((context - context.detach()) * gradient).sum()
+        return surrogate, {"context/wm_input_grad_norm": gradient.float().norm(),
+                           "context/wm_grad_scale": context.new_tensor(self.context_wm_grad_scale)}
 
     def _prediction_feat(self, feat, context=None):
         """DALI Deep conditions prediction heads; context learns only from auxiliaries."""
